@@ -3,13 +3,10 @@ package awsinspect
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
-
-	"github.com/pentops/log.go/pretty"
 )
 
 type CloudwatchLogsClient interface {
@@ -23,8 +20,6 @@ type LogStream struct {
 }
 
 func TailLogStream(ctx context.Context, client CloudwatchLogsClient, logGroup LogStream, fromTime time.Time) error {
-
-	printer := pretty.NewPrinter(os.Stdout)
 
 	fromTimeInt := fromTime.UnixNano() / int64(time.Millisecond)
 	var nextToken *string
@@ -46,9 +41,9 @@ func TailLogStream(ctx context.Context, client CloudwatchLogsClient, logGroup Lo
 		}
 
 		for _, event := range logEvents.Events {
-			if event.Message != nil {
-				printer.PrintRawLine(logGroup.Container, *event.Message)
-			}
+			fmt.Println(*event.Message)
 		}
+
+		time.Sleep(time.Second)
 	}
 }

@@ -1,0 +1,30 @@
+---
+
+generate:
+  - name: client
+    out: .
+    sources:
+      - local: ../o5-messaging
+        bundles: [proto]
+
+      - local: ../registry
+        bundles: [proto]
+
+      - local: ../o5-deploy-aws
+        bundles: [proto]
+
+      - local: ../dante
+        bundles: [proto]
+
+      - local: ../protostate
+        bundles: [proto/listify, proto/protostate]
+
+    plugins:
+      - base: go
+    opts:
+      addGoPrefix: github.com/pentops/o5-aws-tool/libo5
+
+plugins:
+  - name: go
+    type: PLUGIN_J5_CLIENT
+    builtin: { name: 'go-client' }

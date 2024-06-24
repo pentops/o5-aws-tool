@@ -1,10 +1,9 @@
-package main
+package local
 
 import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,10 +13,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/awslabs/goformation/v7/cloudformation"
 	"github.com/awslabs/goformation/v7/cloudformation/ecs"
+	tpl_secretsmanager "github.com/awslabs/goformation/v7/cloudformation/secretsmanager"
+	"github.com/awslabs/goformation/v7/cloudformation/sqs"
 	"github.com/pentops/log.go/log"
-	"github.com/pentops/log.go/pretty"
-	"github.com/pentops/o5-deploy-aws/app"
+	"github.com/pentops/o5-deploy-aws/cf/app"
 	"github.com/pentops/o5-deploy-aws/deployer"
 	"github.com/pentops/o5-deploy-aws/protoread"
 	"github.com/pentops/o5-go/application/v1/application_pb"
@@ -27,53 +28,14 @@ import (
 )
 
 type flagConfig struct {
-	envFilename string
-	appFilename string
-	workdir     string
-	command     string
+	Workdir     string `flag:"workdir" default:"."`
+	EnvFilename string `flag:"env-file" env:"ENV_FILE"`
+	AppFilename string `flag:"app-file" default:"./ext/o5/o5.yaml"`
+	Command     string `flag:"command"`
+	SidecarAddr string `flag:"sidecar-addr" default:":8888"`
 }
 
-var prettyLogger = pretty.NewPrinter(os.Stdout)
-
-func main() {
-	cfg := flagConfig{}
-	flag.StringVar(&cfg.envFilename, "env", "", "environment file")
-	flag.StringVar(&cfg.appFilename, "app", "", "application file")
-	flag.StringVar(&cfg.workdir, "workdir", "", "working directory")
-	flag.StringVar(&cfg.command, "command", "", "command to run")
-
-	flag.Parse()
-
-	if cfg.appFilename == "" {
-		fmt.Fprintln(os.Stderr, "missing application file (-app)")
-		os.Exit(1)
-	}
-
-	if cfg.envFilename == "" {
-		fmt.Fprintln(os.Stderr, "missing env file (-env)")
-		os.Exit(1)
-	}
-
-	if cfg.workdir == "" {
-		fmt.Fprintln(os.Stderr, "missing working directory (-workdir)")
-		os.Exit(1)
-	}
-
-	if cfg.command == "" {
-		fmt.Fprintln(os.Stderr, "missing command (-command)")
-		os.Exit(1)
-	}
-
-	log.DefaultLogger = log.NewCallbackLogger(prettyLogger.CallbackWithPrefix("sidecar"))
-
-	ctx := context.Background()
-	if err := do(ctx, cfg); err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-}
-
-func do(ctx context.Context, flagConfig flagConfig) error {
+func RunLocal(ctx context.Context, flagConfig flagConfig) error {
 	defer func() {
 		fmt.Printf("Deferred Func Running\n")
 	}()
@@ -86,7 +48,7 @@ func do(ctx context.Context, flagConfig flagConfig) error {
 	secretsManagerClient := secretsmanager.NewFromConfig(awsConfig)
 
 	appConfig := &application_pb.Application{}
-	if err := protoread.PullAndParse(ctx, s3Client, flagConfig.appFilename, appConfig); err != nil {
+	if err := protoread.PullAndParse(ctx, s3Client, flagConfig.AppFilename, appConfig); err != nil {
 		return err
 	}
 
@@ -94,13 +56,13 @@ func do(ctx context.Context, flagConfig flagConfig) error {
 		appConfig.DeploymentConfig = &application_pb.DeploymentConfig{}
 	}
 
-	app, err := app.BuildApplication(appConfig, "VERSION")
+	built, err := app.BuildApplication(appConfig, "VERSION")
 	if err != nil {
 		return err
 	}
 
 	env := &environment_pb.Environment{}
-	if err := protoread.PullAndParse(ctx, s3Client, flagConfig.envFilename, env); err != nil {
+	if err := protoread.PullAndParse(ctx, s3Client, flagConfig.EnvFilename, env); err != nil {
 		return err
 	}
 
@@ -114,18 +76,36 @@ func do(ctx context.Context, flagConfig flagConfig) error {
 		return err
 	}
 
-	mainRuntime := app.GetRuntime("main")
-	if mainRuntime == nil {
-		return fmt.Errorf("no runtime named 'main' found")
+	taskDef, ok := built.Template.Resources["AWSECSTaskDefinitionmain"]
+	if !ok {
+		return fmt.Errorf("no task definition named 'AWSECSTaskDefinitionmain' found")
+	}
+	taskDefResource, ok := taskDef.(*app.Resource[*ecs.TaskDefinition])
+	if !ok {
+		return fmt.Errorf("resource 'AWSECSTaskDefinitionmain' is not a TaskDefinition: %T", taskDef)
 	}
 
-	if len(mainRuntime.Containers) != 1 {
-		return fmt.Errorf("runtime 'main' must have exactly one container")
+	var mainContainer *ecs.TaskDefinition_ContainerDefinition
+	var sidecarContainer *ecs.TaskDefinition_ContainerDefinition
+	for _, container := range taskDefResource.Resource.ContainerDefinitions {
+		container := container
+		if container.Name == "main" {
+			mainContainer = &container
+		} else if container.Name == "o5_runtime" {
+			sidecarContainer = &container
+		}
+	}
+
+	if mainContainer == nil {
+		return fmt.Errorf("no container named 'main' found")
+	}
+	if sidecarContainer == nil {
+		return fmt.Errorf("no container named 'o5_runtime' found")
 	}
 
 	refs := map[string]string{}
 
-	for _, parameter := range app.Parameters() {
+	for _, parameter := range built.BuiltApplication.Parameters {
 		resolved, err := deployerResolver.ResolveParameter(parameter)
 		if err != nil {
 			return err
@@ -133,26 +113,25 @@ func do(ctx context.Context, flagConfig flagConfig) error {
 		refs[parameter.Name] = resolved.GetValue()
 	}
 
-	for key, refVal := range app.Refs() {
+	for key, refVal := range Refs(built.Template) {
 		refs[key] = refVal
 	}
 
 	refs["AWS::Region"] = awsTarget.Region
-	refs["AWS::StackName"] = fmt.Sprintf("%s-%s", env.FullName, app.AppName())
+	refs["AWS::StackName"] = fmt.Sprintf("%s-%s", env.FullName, built.Name)
 
 	runGroup := runner.NewGroup(runner.WithName("local"), runner.WithCancelOnSignals())
 
-	container := mainRuntime.Containers[0]
-
-	mainEnvVars, err := buildEnvironment(ctx, container.Container, refs, secretsManagerClient)
+	mainEnvVars, err := buildEnvironment(ctx, mainContainer, refs, secretsManagerClient)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Main Env Vars %#v\n", mainEnvVars)
 
 	runGroup.Add("main", func(ctx context.Context) error {
-		parts := strings.Split(flagConfig.command, " ")
+		parts := strings.Split(flagConfig.Command, " ")
 		cmd := exec.Command(parts[0], parts[1:]...)
-		cmd.Dir = flagConfig.workdir
+		cmd.Dir = flagConfig.Workdir
 		cmd.Stdout = os.Stderr //prettyLogger.WriterInterceptor("STDOUT")
 		cmd.Stderr = os.Stderr //prettyLogger.WriterInterceptor("STDERR")
 		cmd.Stdin = os.Stdin
@@ -188,9 +167,7 @@ func do(ctx context.Context, flagConfig flagConfig) error {
 
 		ctx := log.WithField(ctx, "runtime", "sidecar")
 
-		container := mainRuntime.AdapterContainer
-
-		envVars, err := buildEnvironment(ctx, container, refs, secretsManagerClient)
+		envVars, err := buildEnvironment(ctx, sidecarContainer, refs, secretsManagerClient)
 		if err != nil {
 			return err
 		}
@@ -213,13 +190,14 @@ func do(ctx context.Context, flagConfig flagConfig) error {
 		}
 
 		cfg := entrypoint.Config{
-			PublicAddr:        ":8888",
+			PublicAddr:        flagConfig.SidecarAddr,
 			ServiceEndpoints:  replacedEndpoints,
 			JWKS:              cleanStringSplit(envMap["JWKS"], ","),
 			SNSPrefix:         envMap["SNS_PREFIX"],
 			SQSURL:            envMap["SQS_URL"],
 			CORSOrigins:       cleanStringSplit(envMap["CORS_ORIGINS"], ","),
 			PostgresOutboxURI: cleanStringSplit(envMap["POSTGRES_OUTBOX"], ","),
+			NoDeadLetters:     true,
 		}
 
 		awsProvider := entrypoint.NewAWSConfigBuilder(awsConfig)
@@ -232,6 +210,28 @@ func do(ctx context.Context, flagConfig flagConfig) error {
 	}
 
 	return runGroup.Run(ctx)
+}
+
+func Refs(tpl *cloudformation.Template) map[string]string {
+
+	out := map[string]string{}
+	for _, obj := range tpl.Resources {
+		switch obj.AWSCloudFormationType() {
+		case "AWS::SecretsManager::Secret":
+			secret, ok := obj.(*app.Resource[*tpl_secretsmanager.Secret])
+			if !ok {
+				panic("Not a secret")
+			}
+			out[secret.Name()] = *secret.Resource.Name
+		case "AWS::SQS::Queue":
+			queue, ok := obj.(*app.Resource[*sqs.Queue])
+			if !ok {
+				panic("Not a queue")
+			}
+			out[queue.Name()] = *queue.Resource.QueueName
+		}
+	}
+	return out
 }
 
 func cleanStringSplit(src string, delim string) []string {
