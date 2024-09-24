@@ -12,9 +12,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/google/uuid"
 	"github.com/pentops/o5-aws-tool/cli"
+	"github.com/pentops/o5-aws-tool/gen/j5/list/v1/list"
+	"github.com/pentops/o5-aws-tool/gen/o5/aws/deployer/v1/deployer"
 	"github.com/pentops/o5-aws-tool/libo5"
-	list "github.com/pentops/o5-aws-tool/libo5/j5/list/v1/list"
-	"github.com/pentops/o5-aws-tool/libo5/o5/aws/deployer/v1/deployer"
 	"github.com/pentops/runner/commander"
 )
 
@@ -250,7 +250,7 @@ func deploymentStatusCommand(deploymentID string) commander.Runnable {
 
 func deploymentStatus(ctx context.Context, queryClient *deployer.DeploymentQueryService, deploymentID string, wait bool) error {
 
-	lastLastEvent := int64(-1)
+	lastLastEvent := uint64(999)
 	didDots := false
 	for {
 		res, err := queryClient.GetDeployment(ctx, &deployer.GetDeploymentRequest{
@@ -360,8 +360,8 @@ func runDeployments(ctx context.Context, cfg struct {
 		query.Filters = append(query.Filters, &list.Filter{
 			Field: &list.Field{
 				Name: "data.spec.appName",
-				Type: &list.Field_Type{
-					Value: &cfg.AppName,
+				Type: &list.FieldType{
+					Value: cfg.AppName,
 				},
 			},
 		})
@@ -371,8 +371,8 @@ func runDeployments(ctx context.Context, cfg struct {
 		query.Filters = append(query.Filters, &list.Filter{
 			Field: &list.Field{
 				Name: "data.spec.environmentName",
-				Type: &list.Field_Type{
-					Value: &cfg.EnvName,
+				Type: &list.FieldType{
+					Value: cfg.EnvName,
 				},
 			},
 		})
@@ -382,8 +382,8 @@ func runDeployments(ctx context.Context, cfg struct {
 		query.Filters = append(query.Filters, &list.Filter{
 			Field: &list.Field{
 				Name: "data.spec.version",
-				Type: &list.Field_Type{
-					Value: &cfg.Version,
+				Type: &list.FieldType{
+					Value: cfg.Version,
 				},
 			},
 		})

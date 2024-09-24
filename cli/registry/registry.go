@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/pentops/o5-aws-tool/cli"
+	"github.com/pentops/o5-aws-tool/gen/j5/registry/github/v1/github"
 	"github.com/pentops/o5-aws-tool/libo5"
-	"github.com/pentops/o5-aws-tool/libo5/j5/registry/github/v1/github"
 
 	"github.com/pentops/runner/commander"
 	"gopkg.in/yaml.v2"
@@ -39,7 +39,7 @@ func runLs(ctx context.Context, cfg struct {
 	}
 
 	for _, repo := range repos.Repos {
-		fmt.Printf("Repo: %s/%s\n", repo.Keys.Owner, repo.Keys.Name)
+		fmt.Printf("Repo: %s/%s\n", repo.Owner, repo.Name)
 		for _, branch := range repo.Data.Branches {
 			fmt.Printf("  Branch: %s\n", branch.BranchName)
 			for _, deployTarget := range branch.DeployTargets {
@@ -92,7 +92,7 @@ func runRegistryConfig(ctx context.Context, cfg struct {
 	}
 
 	byID := sliceToMap(allRepos, func(repo *github.RepoState) string {
-		return fmt.Sprintf("%s/%s", repo.Keys.Owner, repo.Keys.Name)
+		return fmt.Sprintf("%s/%s", repo.Owner, repo.Name)
 	})
 
 	for _, repo := range rawType.Repos {

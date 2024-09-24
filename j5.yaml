@@ -2,7 +2,7 @@
 
 generate:
   - name: client
-    output: ./libo5/
+    output: ./gen
     inputs:
       - registry:
           owner: pentops
@@ -19,9 +19,15 @@ generate:
     plugins:
       - base: go
     opts:
-      go_package_prefix: github.com/pentops/o5-aws-tool/libo5
+      go_package_prefix: github.com/pentops/o5-aws-tool/gen
+
+managedPaths:
+  - ./libo5/packages
 
 plugins:
   - name: go
     type: PLUGIN_J5_CLIENT
-    cmd: 'j5-gen-go-client'
+    docker:
+      image: ghcr.io/pentops/j5-gen-go-client:e1d0018f1f9d8278f26d3a005d4d4bbea699f544
+
+

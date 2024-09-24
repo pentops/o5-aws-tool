@@ -9,9 +9,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.31.0
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.37.0
 	github.com/fatih/color v1.17.0
-	github.com/ghodss/yaml v1.0.0
 	github.com/google/uuid v1.6.0
-	github.com/pentops/runner v0.0.0-20240525192419-d655233635e9
+	github.com/pentops/log.go v0.0.0-20240806161938-2742d05b4c24
+	github.com/pentops/runner v0.0.0-20240920235254-d99051980854
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -32,9 +33,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/pentops/log.go v0.0.0-20240612184720-79634792a21e // indirect
-	golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
+	golang.org/x/sys v0.23.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

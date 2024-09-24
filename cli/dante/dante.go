@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pentops/o5-aws-tool/cli"
+	"github.com/pentops/o5-aws-tool/gen/o5/dante/v1/dante"
+	"github.com/pentops/o5-aws-tool/gen/o5/messaging/v1/messaging"
 	"github.com/pentops/o5-aws-tool/libo5"
-	"github.com/pentops/o5-aws-tool/libo5/o5/dante/v1/dante"
-	"github.com/pentops/o5-aws-tool/libo5/o5/messaging/v1/messaging"
 	"github.com/pentops/runner/commander"
 )
 
