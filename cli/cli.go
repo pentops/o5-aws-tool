@@ -52,7 +52,7 @@ func RunOneCommand(ctx context.Context, commands []*Command) error {
 		for i, cmd := range commands {
 			label := ""
 			if cmd.Short == "" {
-				label = fmt.Sprintf("%s", cmd.Name)
+				label = cmd.Name
 			} else if cmd.Name == "" {
 				label = fmt.Sprintf("[%s]", cmd.Short)
 			} else if cmd.Short == cmd.Name[:1] {

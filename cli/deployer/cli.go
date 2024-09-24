@@ -34,10 +34,8 @@ func O5CommandSet() *commander.CommandSet {
 	return remoteGroup
 }
 
-var idNamespace = uuid.MustParse("0D783718-F8FD-4543-AE3D-6382AB0B8178")
-
 type StateCache struct {
-	StateData string `env:"O5_CLI_STATE_DATA" default:"~/.o5-cli/state.json"`
+	StateData string `env:"O5_CLI_STATE_DATA" default:"$HOME/.local/share/o5-cli/state.json"`
 }
 
 type stateData struct {
@@ -46,7 +44,9 @@ type stateData struct {
 
 func (cfg *StateCache) SetVal(key, val string) error {
 	data := &stateData{}
-	os.MkdirAll(filepath.Dir(cfg.StateData), 0700)
+	if err := os.MkdirAll(filepath.Dir(cfg.StateData), 0700); err != nil {
+		return fmt.Errorf("mkdir: %w", err)
+	}
 	if _, err := os.Stat(cfg.StateData); err == nil {
 		content, err := os.ReadFile(cfg.StateData)
 		if err != nil {

@@ -213,7 +213,7 @@ func configMatches(existing *github.RepoStateData, want *github.RepoStateData) b
 	}
 
 	if len(existingBranches) > 0 {
-		for name, _ := range existingBranches {
+		for name := range existingBranches {
 			fmt.Printf("Extra Branch: %s\n", name)
 		}
 		fmt.Printf("Extra Branches\n")
@@ -244,11 +244,7 @@ func branchMatches(existing *github.Branch, want *github.Branch) bool {
 		delete(namedExisting, name)
 	}
 
-	if len(namedExisting) > 0 {
-		return false
-	}
-
-	return true
+	return len(namedExisting) <= 0
 
 }
 func sliceToMap[T any](slice []T, key func(T) string) map[string]T {

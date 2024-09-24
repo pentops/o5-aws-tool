@@ -26,6 +26,24 @@ func DanteCommandSet() *commander.CommandSet {
 var errExitMessage = fmt.Errorf("exit message")
 var errExitLoop = fmt.Errorf("exit loop")
 
+func prettyPrintJSON(data []byte, truncate bool) {
+
+	var body string
+
+	buff := &bytes.Buffer{}
+	if err := json.Indent(buff, data, "  |", "  "); err != nil {
+		fmt.Printf("Error indenting JSON body : %s\n", err)
+		body = string(data)
+	} else {
+		body = buff.String()
+	}
+
+	if truncate && len(body) > 250 {
+		body = body[:250] + "..."
+	}
+	fmt.Printf("  |%s\n", body)
+}
+
 func runDanteLs(ctx context.Context, cfg struct {
 	libo5.APIConfig
 	Interactive bool `flag:"i" help:"Interactive mode"`
@@ -39,13 +57,7 @@ func runDanteLs(ctx context.Context, cfg struct {
 		msg := state.Data.CurrentVersion.Message
 		fmt.Printf("  /%s/%s\n", msg.GrpcService, msg.GrpcMethod)
 
-		buff := &bytes.Buffer{}
-		json.Indent(buff, msg.Body.Value, "  |", "  ")
-		body := string(buff.Bytes())
-		if len(body) > 250 {
-			body = body[:250] + "..."
-		}
-		fmt.Printf("  |%s\n", body)
+		prettyPrintJSON(msg.Body.Value, true)
 
 		if state.Data.Notification.Problem.UnhandledError != nil {
 			fmt.Printf("  Error: %s", state.Data.Notification.Problem.UnhandledError.Error)
@@ -143,10 +155,8 @@ func runDanteLs(ctx context.Context, cfg struct {
 			Name:    "print-body",
 			Summary: "Prints the full message body",
 			Run: func() error {
-				buff := &bytes.Buffer{}
-				json.Indent(buff, state.Data.CurrentVersion.Message.Body.Value, "  ", "  ")
 				fmt.Printf("Full Message\n")
-				fmt.Printf("%s\n", buff.String())
+				prettyPrintJSON(state.Data.CurrentVersion.Message.Body.Value, false)
 				return nil
 			},
 		}
