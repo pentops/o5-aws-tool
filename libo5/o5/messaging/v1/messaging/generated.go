@@ -7,40 +7,27 @@ import (
 	time "time"
 )
 
-// Message Proto: o5.messaging.v1.Message
-type Message struct {
-	MessageId        string            `json:"messageId,omitempty"`
-	GrpcService      string            `json:"grpcService,omitempty"`
-	GrpcMethod       string            `json:"grpcMethod,omitempty"`
-	Body             *Any              `json:"body,omitempty"`
-	SourceApp        string            `json:"sourceApp,omitempty"`
-	SourceEnv        string            `json:"sourceEnv,omitempty"`
-	DestinationTopic string            `json:"destinationTopic,omitempty"`
-	Timestamp        *time.Time        `json:"timestamp,omitempty"`
-	Headers          map[string]string `json:"headers,omitempty"`
-	Request          *Message_Request  `json:"request,omitempty"`
-	Reply            *Message_Reply    `json:"reply,omitempty"`
-}
-
-// Any Proto: o5.messaging.v1.Any
+// Any Proto: Any
 type Any struct {
 	TypeUrl  string `json:"typeUrl,omitempty"`
 	Value    []byte `json:"value,omitempty"`
 	Encoding string `json:"encoding,omitempty"`
 }
 
-// Message_Request Proto: o5.messaging.v1.Message.Request
-type Message_Request struct {
-	ReplyTo string `json:"replyTo,omitempty"`
+// Infra Proto: Infra
+type Infra struct {
+	Type     string            `json:"type,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
 }
 
-// Message_Reply Proto: o5.messaging.v1.Message.Reply
-type Message_Reply struct {
-	ReplyTo string `json:"replyTo,omitempty"`
+// Problem_UnhandledError Proto: Problem_UnhandledError
+type Problem_UnhandledError struct {
+	Error string `json:"error,omitempty"`
 }
 
-// Problem Proto: o5.messaging.v1.topic.Problem
+// Problem Proto Message: Problem
 type Problem struct {
+	J5TypeKey      string                  `json:"!type,omitempty"`
 	UnhandledError *Problem_UnhandledError `json:"unhandledError,omitempty"`
 }
 
@@ -58,18 +45,7 @@ func (s Problem) Type() interface{} {
 	return nil
 }
 
-// Problem_UnhandledError Proto: o5.messaging.v1.topic.Problem.UnhandledError
-type Problem_UnhandledError struct {
-	Error string `json:"error,omitempty"`
-}
-
-// Infra Proto: o5.messaging.v1.topic.Infra
-type Infra struct {
-	Type     string            `json:"type,omitempty"`
-	Metadata map[string]string `json:"metadata,omitempty"`
-}
-
-// DeadMessage Proto: o5.messaging.v1.topic.DeadMessage
+// DeadMessage Proto: DeadMessage
 type DeadMessage struct {
 	DeathId    string   `json:"deathId,omitempty"`
 	HandlerApp string   `json:"handlerApp,omitempty"`
@@ -77,4 +53,35 @@ type DeadMessage struct {
 	Message    *Message `json:"message,omitempty"`
 	Problem    *Problem `json:"problem,omitempty"`
 	Infra      *Infra   `json:"infra,omitempty"`
+}
+
+// RequestMetadata Proto: RequestMetadata
+type RequestMetadata struct {
+	ReplyTo string `json:"replyTo,omitempty"`
+	Context []byte `json:"context,omitempty"`
+}
+
+// Message_Request Proto: Message_Request
+type Message_Request struct {
+	ReplyTo string `json:"replyTo,omitempty"`
+}
+
+// Message_Reply Proto: Message_Reply
+type Message_Reply struct {
+	ReplyTo string `json:"replyTo,omitempty"`
+}
+
+// Message Proto: Message
+type Message struct {
+	MessageId        string            `json:"messageId,omitempty"`
+	GrpcService      string            `json:"grpcService,omitempty"`
+	GrpcMethod       string            `json:"grpcMethod,omitempty"`
+	Body             *Any              `json:"body,omitempty"`
+	SourceApp        string            `json:"sourceApp,omitempty"`
+	SourceEnv        string            `json:"sourceEnv,omitempty"`
+	DestinationTopic string            `json:"destinationTopic,omitempty"`
+	Timestamp        *time.Time        `json:"timestamp,omitempty"`
+	Headers          map[string]string `json:"headers,omitempty"`
+	Request          *Message_Request  `json:"request,omitempty"`
+	Reply            *Message_Reply    `json:"reply,omitempty"`
 }

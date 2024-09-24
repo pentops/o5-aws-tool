@@ -5,13 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/pentops/o5-aws-tool/cli"
-	"github.com/pentops/o5-aws-tool/cli/api"
 	"github.com/pentops/o5-aws-tool/libo5"
 	"github.com/pentops/o5-aws-tool/libo5/o5/dante/v1/dante"
+	"github.com/pentops/o5-aws-tool/libo5/o5/messaging/v1/messaging"
 	"github.com/pentops/runner/commander"
 )
 
@@ -24,22 +23,28 @@ func DanteCommandSet() *commander.CommandSet {
 	return remoteGroup
 }
 
+var errExitMessage = fmt.Errorf("exit message")
+var errExitLoop = fmt.Errorf("exit loop")
+
 func runDanteLs(ctx context.Context, cfg struct {
-	api.BaseCommand
+	libo5.APIConfig
 	Interactive bool `flag:"i" help:"Interactive mode"`
 }) error {
-	client := cfg.Client()
+	client := cfg.APIClient()
 
 	queryClient := dante.NewDeadMessageQueryService(client)
 	commandClient := dante.NewDeadMessageCommandService(client)
 	printMessage := func(state *dante.DeadMessageState) {
-		fmt.Printf("DL %s\n", state.Keys.MessageId)
+		fmt.Printf("DL %s\n", state.MessageId)
 		msg := state.Data.CurrentVersion.Message
 		fmt.Printf("  /%s/%s\n", msg.GrpcService, msg.GrpcMethod)
 
 		buff := &bytes.Buffer{}
 		json.Indent(buff, msg.Body.Value, "  |", "  ")
-		body := string(buff.Bytes())[:250]
+		body := string(buff.Bytes())
+		if len(body) > 250 {
+			body = body[:250] + "..."
+		}
 		fmt.Printf("  |%s\n", body)
 
 		if state.Data.Notification.Problem.UnhandledError != nil {
@@ -49,54 +54,62 @@ func runDanteLs(ctx context.Context, cfg struct {
 	runInteraction := func(ctx context.Context, state *dante.DeadMessageState) error {
 		hasMods := false
 		newVersion := &dante.DeadMessageVersion{}
-		for {
-			options := []string{"delete", "[r]eplay", "set-url"}
 
-			if hasMods {
-				options = append(options, "[s]ave - Saves the changes made to the message")
-				options = append(options, "discard - Discards the pending changes")
-			} else {
-				options = append(options, "[n]ext - Ignore this message and move on", "[q]uit")
-			}
-			for _, opt := range options {
-				fmt.Printf("  %s\n", opt)
-			}
-			option := cli.Ask("Action")
-			if option == "" {
-				fmt.Printf("invalid option\n")
-				continue
-			}
-			fmt.Printf("option: %s\n", strings.ToLower(option))
-			switch strings.ToLower(option) {
-			case "d", "delete":
+		deleteCommand := &cli.Command{
+			Name:    "delete",
+			Short:   "d",
+			Summary: "Mark the message as Rejected (deleted)",
+			Run: func() error {
 				res, err := commandClient.RejectDeadMessage(ctx, &dante.RejectDeadMessageRequest{
-					MessageId: state.Keys.MessageId,
+					MessageId: state.MessageId,
 				})
 				if err != nil {
 					return fmt.Errorf("reject dead messages: %w", err)
 				}
 				cli.Print("DL", res.Message.Status)
-				return nil
+				return errExitMessage
+			},
+		}
 
-			case "r", "replay":
+		replayCommand := &cli.Command{
+			Name:    "replay",
+			Short:   "r",
+			Summary: "Replay the message",
+			Run: func() error {
 				res, err := commandClient.ReplayDeadMessage(ctx, &dante.ReplayDeadMessageRequest{
-					MessageId: state.Keys.MessageId,
+					MessageId: state.MessageId,
 				})
 				if err != nil {
 					return fmt.Errorf("replay dead messages: %w", err)
 				}
 				cli.Print("DL", res.Message.Status)
-				return nil
+				return errExitMessage
+			},
+		}
 
-			case "s", "save":
+		nextCommand := &cli.Command{
+			Name:    "next",
+			Short:   "n",
+			Summary: "Ignore this message and move on",
+			Run: func() error {
+				return errExitMessage
+			},
+		}
+
+		saveCommand := &cli.Command{
+			Name:    "save",
+			Short:   "s",
+			Summary: "Saves the changes made to the message",
+			Run: func() error {
 				if !hasMods {
 					fmt.Printf("No changes to save\n")
-					continue
+
+					return nil
 				}
 				newID := uuid.NewString()
 				newVersion.VersionId = newID
 				res, err := commandClient.UpdateDeadMessage(ctx, &dante.UpdateDeadMessageRequest{
-					MessageId:         state.Keys.MessageId,
+					MessageId:         state.MessageId,
 					ReplacesVersionId: state.Data.CurrentVersion.VersionId,
 					VersionId:         &newID,
 					Message:           newVersion,
@@ -107,15 +120,66 @@ func runDanteLs(ctx context.Context, cfg struct {
 				fmt.Printf("Saved, new state: %s\n", res.Message.Status)
 				printMessage(res.Message)
 				hasMods = false
+				return nil
+			},
+		}
 
-			case "print-infra":
+		discardCommand := &cli.Command{
+			Name:    "discard",
+			Summary: "Discards the changes made to the message",
+			Run: func() error {
+				if !hasMods {
+					fmt.Printf("No changes to discard\n")
+					return nil
+				}
+				hasMods = false
+				newVersion = &dante.DeadMessageVersion{}
+				fmt.Printf("Discarded\n")
+				return nil
+			},
+		}
+
+		printFullCommand := &cli.Command{
+			Name:    "print-body",
+			Summary: "Prints the full message body",
+			Run: func() error {
+				buff := &bytes.Buffer{}
+				json.Indent(buff, state.Data.CurrentVersion.Message.Body.Value, "  ", "  ")
+				fmt.Printf("Full Message\n")
+				fmt.Printf("%s\n", buff.String())
+				return nil
+			},
+		}
+
+		printMetadataCommand := &cli.Command{
+			Name:    "print-metadata",
+			Summary: "Prints the metadata",
+			Run: func() error {
+				fmt.Printf("Metadata\n")
+				fmt.Printf("Handler Env: %s\n", state.Data.Notification.HandlerEnv)
+				fmt.Printf("Handler App: %s\n", state.Data.Notification.HandlerApp)
+				fmt.Printf("Death ID: %s\n", state.Data.Notification.DeathId)
+				return nil
+			},
+		}
+
+		printInfraCommand := &cli.Command{
+			Name:    "print-infra",
+			Summary: "Prints the infra notification",
+			Run: func() error {
 				fmt.Printf("Notification\n")
 				fmt.Printf("  Type: %s\n", state.Data.Notification.Infra.Type)
 				for key, val := range state.Data.Notification.Infra.Metadata {
 					fmt.Printf("    %s: %s\n", key, val)
 				}
+				return nil
+			},
+		}
 
-			case "print-sqs":
+		printSQSCommand := &cli.Command{
+			Name:    "print-sqs",
+			Summary: "Prints the SQS message",
+			Run: func() error {
 				if state.Data.CurrentVersion.SqsMessage != nil {
 					fmt.Printf("Current SQS message\n")
 					fmt.Printf("  URL: %s\n", state.Data.CurrentVersion.SqsMessage.QueueUrl)
@@ -131,9 +195,14 @@ func runDanteLs(ctx context.Context, cfg struct {
 						fmt.Printf("    %s: %s\n", key, val)
 					}
 				}
-				continue
+				return nil
+			},
+		}
 
-			case "set-url":
+		setURLCommand := &cli.Command{
+			Name:    "set-url",
+			Summary: "Set the URL of the SQS message",
+			Run: func() error {
 				url := cli.Ask("URL: ")
 				if newVersion.SqsMessage == nil {
 					newVersion.SqsMessage = &dante.DeadMessageVersion_SQSMessage{}
@@ -145,13 +214,79 @@ func runDanteLs(ctx context.Context, cfg struct {
 				for key, val := range newVersion.SqsMessage.Attributes {
 					fmt.Printf("  %s: %s\n", key, val)
 				}
-				continue
+				return nil
+			},
+		}
 
-			case "q", "quit":
-				return libo5.ErrStopPaging
-			default:
-				fmt.Printf("Invalid option %q\n", option)
+		editBodyCommand := &cli.Command{
+			Name:    "edit-body",
+			Summary: "Edit the body of the message using $EDITOR",
+			Run: func() error {
+				buff := &bytes.Buffer{}
+				if err := json.Indent(buff, state.Data.CurrentVersion.Message.Body.Value, "", "  "); err != nil {
+					return fmt.Errorf("indent body: %w", err)
+				}
+				newBody, err := cli.Edit(ctx, buff.String())
+				if err != nil {
+					return fmt.Errorf("edit body: %w", err)
+				}
+				buff = &bytes.Buffer{}
+				if err := json.Indent(buff, []byte(newBody), "  ", "  "); err != nil {
+					return fmt.Errorf("indent body: %w", err)
+				}
+				fmt.Printf("New Body\n")
+				fmt.Printf("%s\n", buff.String())
+
+				newVersion.Message = &messaging.Message{
+					Body: &messaging.Any{
+						Value:    []byte(newBody),
+						TypeUrl:  state.Data.CurrentVersion.Message.Body.TypeUrl,
+						Encoding: state.Data.CurrentVersion.Message.Body.Encoding,
+					},
+				}
+				hasMods = true
+				return nil
+			},
+		}
+
+		quitCommand := &cli.Command{
+			Name:  "quit",
+			Short: "q",
+
+			Summary: "Quit the interaction",
+			Run: func() error {
+				return errExitLoop
+			},
+		}
+
+		for {
+			options := []*cli.Command{
+				printMetadataCommand,
+				printFullCommand,
+				printInfraCommand,
+				printSQSCommand,
+				deleteCommand,
+				setURLCommand,
+				editBodyCommand,
+				quitCommand,
 			}
+
+			if hasMods {
+				options = append(options, saveCommand, discardCommand)
+			} else {
+				options = append(options, nextCommand, replayCommand)
+			}
+
+			if err := cli.RunOneCommand(ctx, options); err != nil {
+				if err == errExitMessage {
+					return nil
+				}
+				if err == errExitLoop {
+					return libo5.ErrStopPaging
+				}
+				return err
+			}
+
 		}
 	}
 
@@ -180,10 +315,10 @@ func runDanteLs(ctx context.Context, cfg struct {
 }
 
 func runDanteReject(ctx context.Context, cfg struct {
-	api.BaseCommand
+	libo5.APIConfig
 	ID string `flag:"id" help:"ID of the dead message to shelve"`
 }) error {
-	client := cfg.Client()
+	client := cfg.APIClient()
 
 	queryClient := dante.NewDeadMessageCommandService(client)
 

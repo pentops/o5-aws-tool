@@ -5,60 +5,50 @@ package environment
 
 import ()
 
-// CustomVariable_Join Proto: o5.environment.v1.CustomVariable.Join
+// CustomVariable_Join Proto: CustomVariable_Join
 type CustomVariable_Join struct {
 	Delimiter string   `json:"delimiter,omitempty"`
 	Values    []string `json:"values,omitempty"`
 }
 
-// AWSEnvironment Proto: o5.environment.v1.AWSEnvironment
-type AWSEnvironment struct {
-	HostHeader       *string              `json:"hostHeader,omitempty"`
-	EnvironmentLinks []*AWSLink           `json:"environmentLinks,omitempty"`
-	GrantPrincipals  []*AWSGrantPrincipal `json:"grantPrincipals,omitempty"`
-	SesIdentity      *SESIdentity         `json:"sesIdentity,omitempty"`
-}
-
-// AWSLink Proto: o5.environment.v1.AWSLink
-type AWSLink struct {
-	LookupName string `json:"lookupName,omitempty"`
-	FullName   string `json:"fullName,omitempty"`
-	SnsPrefix  string `json:"snsPrefix,omitempty"`
-}
-
-// AWSGrantPrincipal Proto: o5.environment.v1.AWSGrantPrincipal
-type AWSGrantPrincipal struct {
-	Name    string `json:"name,omitempty"`
-	RoleArn string `json:"roleArn,omitempty"`
-}
-
-// Cluster Proto: o5.environment.v1.Cluster
-type Cluster struct {
-	Name       string      `json:"name,omitempty"`
-	EcsCluster *ECSCluster `json:"ecsCluster,omitempty"`
-}
-
-// CombinedConfig Proto: o5.environment.v1.CombinedConfig
+// CombinedConfig Proto: CombinedConfig
 type CombinedConfig struct {
 	Name         string         `json:"name,omitempty"`
 	EcsCluster   *ECSCluster    `json:"ecsCluster,omitempty"`
 	Environments []*Environment `json:"environments,omitempty"`
 }
 
-// RDSHost Proto: o5.environment.v1.RDSHost
-type RDSHost struct {
-	ServerGroup string `json:"serverGroup,omitempty"`
-	SecretName  string `json:"secretName,omitempty"`
+// AWSEnvironment Proto: AWSEnvironment
+type AWSEnvironment struct {
+	HostHeader       *string           `json:"hostHeader,omitempty"`
+	EnvironmentLinks []*AWSLink        `json:"environmentLinks,omitempty"`
+	IamPolicies      []*NamedIAMPolicy `json:"iamPolicies,omitempty"`
 }
 
-// CustomVariable Proto: o5.environment.v1.CustomVariable
+// Environment Proto: Environment
+type Environment struct {
+	FullName    string            `json:"fullName,omitempty"`
+	ClusterName string            `json:"clusterName,omitempty"`
+	TrustJwks   []string          `json:"trustJwks,omitempty"`
+	Vars        []*CustomVariable `json:"vars,omitempty"`
+	CorsOrigins []string          `json:"corsOrigins,omitempty"`
+	Aws         *AWSEnvironment   `json:"aws,omitempty"`
+}
+
+// Cluster Proto: Cluster
+type Cluster struct {
+	Name       string      `json:"name,omitempty"`
+	EcsCluster *ECSCluster `json:"ecsCluster,omitempty"`
+}
+
+// CustomVariable Proto: CustomVariable
 type CustomVariable struct {
 	Name  string               `json:"name,omitempty"`
 	Value string               `json:"value,omitempty"`
 	Join  *CustomVariable_Join `json:"join,omitempty"`
 }
 
-// ECSCluster Proto: o5.environment.v1.ECSCluster
+// ECSCluster Proto: ECSCluster
 type ECSCluster struct {
 	ListenerArn          string     `json:"listenerArn,omitempty"`
 	EcsClusterName       string     `json:"ecsClusterName,omitempty"`
@@ -76,18 +66,21 @@ type ECSCluster struct {
 	GlobalNamespace      string     `json:"globalNamespace,omitempty"`
 }
 
-// Environment Proto: o5.environment.v1.Environment
-type Environment struct {
-	FullName    string            `json:"fullName,omitempty"`
-	ClusterName string            `json:"clusterName,omitempty"`
-	TrustJwks   []string          `json:"trustJwks,omitempty"`
-	Vars        []*CustomVariable `json:"vars,omitempty"`
-	CorsOrigins []string          `json:"corsOrigins,omitempty"`
-	Aws         *AWSEnvironment   `json:"aws,omitempty"`
+// NamedIAMPolicy Proto: NamedIAMPolicy
+type NamedIAMPolicy struct {
+	Name      string `json:"name,omitempty"`
+	PolicyArn string `json:"policyArn,omitempty"`
 }
 
-// SESIdentity Proto: o5.environment.v1.SESIdentity
-type SESIdentity struct {
-	Senders    []string `json:"senders,omitempty"`
-	Recipients []string `json:"recipients,omitempty"`
+// RDSHost Proto: RDSHost
+type RDSHost struct {
+	ServerGroup string `json:"serverGroup,omitempty"`
+	SecretName  string `json:"secretName,omitempty"`
+}
+
+// AWSLink Proto: AWSLink
+type AWSLink struct {
+	LookupName string `json:"lookupName,omitempty"`
+	FullName   string `json:"fullName,omitempty"`
+	SnsPrefix  string `json:"snsPrefix,omitempty"`
 }

@@ -10,14 +10,11 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/ghodss/yaml"
 	"github.com/google/uuid"
 	"github.com/pentops/o5-aws-tool/cli"
-	"github.com/pentops/o5-aws-tool/cli/api"
 	"github.com/pentops/o5-aws-tool/libo5"
+	list "github.com/pentops/o5-aws-tool/libo5/j5/list/v1/list"
 	"github.com/pentops/o5-aws-tool/libo5/o5/aws/deployer/v1/deployer"
-	"github.com/pentops/o5-aws-tool/libo5/o5/registry/github/v1/github"
-	list "github.com/pentops/o5-aws-tool/libo5/psm/list/v1/list"
 	"github.com/pentops/runner/commander"
 )
 
@@ -27,100 +24,17 @@ func O5CommandSet() *commander.CommandSet {
 
 	remoteGroup.Add("deployment", commander.NewCommand(runDeployment))
 	remoteGroup.Add("deployments", commander.NewCommand(runDeployments))
+
 	remoteGroup.Add("stack", commander.NewCommand(runStack))
-
-	remoteGroup.Add("status", commander.NewCommand(runStatus))
-
 	remoteGroup.Add("stacks", commander.NewCommand(runStacks))
 	remoteGroup.Add("environments", commander.NewCommand(runEnvironments))
 
-	remoteGroup.Add("cluster-config", commander.NewCommand(runSetEnv))
-	remoteGroup.Add("registry-config", commander.NewCommand(runRegistryConfig))
+	remoteGroup.Add("cluster-config", commander.NewCommand(runClusterConfig))
 
 	return remoteGroup
 }
 
 var idNamespace = uuid.MustParse("0D783718-F8FD-4543-AE3D-6382AB0B8178")
-
-func runRegistryConfig(ctx context.Context, cfg struct {
-	API  string `env:"O5_API" flag:"api"`
-	File string `flag:"file"`
-}) error {
-
-	client := libo5.NewAPI(cfg.API)
-
-	cmd := github.NewGithubCommandService(client)
-
-	data, err := os.ReadFile(cfg.File)
-	if err != nil {
-		return fmt.Errorf("read file: %w", err)
-	}
-
-	type DeployBranch struct {
-		Name string `json:"name"`
-		Env  string `json:"env"`
-	}
-	type repoConfig struct {
-		Owner          string         `json:"owner"`
-		Repo           string         `json:"repo"`
-		Checks         bool           `json:"checks"`
-		J5             bool           `json:"j5"`
-		DeployBranches []DeployBranch `json:"deployBranches"`
-	}
-	rawType := struct {
-		Repos []repoConfig
-	}{}
-	if err := yaml.Unmarshal(data, &rawType); err != nil {
-		return fmt.Errorf("unmarshal: %w", err)
-	}
-
-	for _, repo := range rawType.Repos {
-		fmt.Printf("Configuring %s/%s\n", repo.Owner, repo.Repo)
-
-		config := &github.ConfigureRepoRequest{
-			Owner: repo.Owner,
-			Name:  repo.Repo,
-			Config: &github.RepoEventType_Configure{
-				ChecksEnabled: repo.Checks,
-				Merge:         false,
-			},
-		}
-
-		if repo.J5 {
-			targets := []*github.DeployTargetType{}
-			targets = append(targets, &github.DeployTargetType{
-				J5Build: &github.DeployTargetType_J5Build{},
-			})
-			config.Config.Branches = append(config.Config.Branches, &github.Branch{
-				BranchName:    "*",
-				DeployTargets: targets,
-			})
-		}
-
-		if len(repo.DeployBranches) > 0 {
-			for _, branch := range repo.DeployBranches {
-				branchTargets := []*github.DeployTargetType{{
-					O5Build: &github.DeployTargetType_O5Build{
-						Environment: branch.Env,
-					},
-				}}
-				config.Config.Branches = append(config.Config.Branches, &github.Branch{
-					BranchName:    branch.Name,
-					DeployTargets: branchTargets,
-				})
-			}
-		}
-
-		res, err := cmd.ConfigureRepo(ctx, config)
-		if err != nil {
-			return fmt.Errorf("configure repo: %w", err)
-		}
-		cli.Print("Configured", res)
-
-	}
-
-	return nil
-}
 
 type StateCache struct {
 	StateData string `env:"O5_CLI_STATE_DATA" default:"~/.o5-cli/state.json"`
@@ -174,11 +88,11 @@ func (cfg *StateCache) GetVal(key string) (string, error) {
 	return val, nil
 }
 
-func runSetEnv(ctx context.Context, cfg struct {
-	api.BaseCommand
+func runClusterConfig(ctx context.Context, cfg struct {
+	libo5.APIConfig
 	Src string `flag:"src"`
 }) error {
-	client := cfg.Client()
+	client := cfg.APIClient()
 
 	content, err := os.ReadFile(cfg.Src)
 	if err != nil {
@@ -198,18 +112,35 @@ func runSetEnv(ctx context.Context, cfg struct {
 	}
 
 	commandClient := deployer.NewDeploymentCommandService(client)
-	_, err = commandClient.UpsertCluster(ctx, req)
+	res, err := commandClient.UpsertCluster(ctx, req)
 	if err != nil {
 		return fmt.Errorf("upsert cluster: %w", err)
 	}
+	cli.Print("Cluster Config", res.State)
 	return nil
 }
 
-func runStacks(ctx context.Context, cfg struct {
+/*
+func runClusters(ctx context.Context, cfg struct {
 	api.BaseCommand
-	API string `env:"O5_API" flag:"api"`
 }) error {
 	queryClient := deployer.NewDeploymentQueryService(cfg.Client())
+
+	if err := libo5.Paged(ctx,
+		&deployer.List{}, queryClient.ListClusters,
+		func(cluster *deployer.ClusterState) error {
+			fmt.Printf("%s\n", cluster.ClusterId)
+			return nil
+		}); err != nil {
+		return fmt.Errorf("list clusters: %w", err)
+	}
+	return nil
+}(*/
+
+func runStacks(ctx context.Context, cfg struct {
+	libo5.APIConfig
+}) error {
+	queryClient := deployer.NewCombinedClient(cfg.APIClient())
 
 	if err := libo5.Paged(ctx,
 		&deployer.ListStacksRequest{}, queryClient.ListStacks,
@@ -226,15 +157,24 @@ func runStacks(ctx context.Context, cfg struct {
 }
 
 func runEnvironments(ctx context.Context, cfg struct {
-	api.BaseCommand
+	libo5.APIConfig
 	API string `env:"O5_API" flag:"api"`
 }) error {
-	queryClient := deployer.NewDeploymentQueryService(cfg.Client())
+	queryClient := deployer.NewCombinedClient(cfg.APIClient())
 
 	if err := libo5.Paged(ctx,
 		&deployer.ListEnvironmentsRequest{}, queryClient.ListEnvironments,
 		func(env *deployer.EnvironmentState) error {
-			fmt.Printf("%25s %s\n", env.Data.Config.FullName, env.EnvironmentId)
+			fmt.Println("=========")
+			fmt.Printf("Environment: %s\n", env.Data.Config.FullName)
+			fmt.Printf("  ID: %s\n", env.EnvironmentId)
+
+			for idx, jwks := range env.Data.Config.TrustJwks {
+				fmt.Printf("  JWKS[%d]: %s\n", idx, jwks)
+			}
+			for _, cfg := range env.Data.Config.Vars {
+				fmt.Printf("  %s: %s\n", cfg.Name, cfg.Value)
+			}
 
 			return nil
 		}); err != nil {
@@ -271,9 +211,9 @@ func runDeployment(ctx context.Context, args struct {
 
 func deploymentTerminateCommand(deploymentID string) commander.Runnable {
 	return commander.NewCommand(func(ctx context.Context, cfg struct {
-		api.BaseCommand
+		libo5.APIConfig
 	}) error {
-		commandClient := deployer.NewDeploymentCommandService(cfg.Client())
+		commandClient := deployer.NewDeploymentCommandService(cfg.APIClient())
 		_, err := commandClient.TerminateDeployment(ctx, &deployer.TerminateDeploymentRequest{
 			DeploymentId: deploymentID,
 		})
@@ -299,15 +239,40 @@ var deploymentStatusColor = map[string]color.Attribute{
 
 func deploymentStatusCommand(deploymentID string) commander.Runnable {
 	return commander.NewCommand(func(ctx context.Context, cfg struct {
-		api.BaseCommand
+		libo5.APIConfig
+		Wait bool `flag:"wait"`
 	}) error {
-		queryClient := deployer.NewDeploymentQueryService(cfg.Client())
+		queryClient := deployer.NewDeploymentQueryService(cfg.APIClient())
+
+		return deploymentStatus(ctx, queryClient, deploymentID, cfg.Wait)
+	})
+}
+
+func deploymentStatus(ctx context.Context, queryClient *deployer.DeploymentQueryService, deploymentID string, wait bool) error {
+
+	lastLastEvent := int64(-1)
+	didDots := false
+	for {
 		res, err := queryClient.GetDeployment(ctx, &deployer.GetDeploymentRequest{
 			DeploymentId: deploymentID,
 		})
 		if err != nil {
 			return fmt.Errorf("get deployment: %w", err)
 		}
+
+		if lastLastEvent == res.State.Metadata.LastSequence {
+			didDots = true
+			fmt.Printf(".")
+			time.Sleep(time.Second)
+			continue
+		}
+		if didDots {
+			fmt.Println()
+			didDots = false
+		}
+
+		lastLastEvent = res.State.Metadata.LastSequence
+
 		fmt.Printf("DeploymentID: %s\n", res.State.DeploymentId)
 		fmt.Printf("Status: %s\n", res.State.Status)
 		fmt.Printf("\n")
@@ -343,8 +308,17 @@ func deploymentStatusCommand(deploymentID string) commander.Runnable {
 
 			fmt.Printf("\n")
 		}
-		return nil
-	})
+		if !wait {
+			break
+		}
+
+		switch res.State.Status {
+		case "DONE", "TERMINATED", "FAILED":
+			return nil
+		}
+		time.Sleep(time.Second)
+	}
+	return nil
 }
 
 type StepsByStatus []*deployer.DeploymentStep
@@ -362,14 +336,22 @@ func (s StepsByStatus) Swap(i, j int) {
 }
 
 func runDeployments(ctx context.Context, cfg struct {
-	api.BaseCommand
+	libo5.APIConfig
 	StateCache
 	AppName string `env:"APP_NAME" flag:"app" default:""`
 	EnvName string `env:"ENV_NAME" flag:"env" default:""`
-}) error {
-	queryClient := deployer.NewDeploymentQueryService(cfg.Client())
+	Version string `env:"VERSION" flag:"version" default:""`
+	All     bool   `flag:"all" description:"Include inactive"`
 
-	// Obviously this should be server-side
+	Q    bool `flag:"q" help:"output only the IDs"`
+	Wait bool `flag:"wait"`
+}) error {
+	if cfg.Wait && cfg.Q {
+		return fmt.Errorf("wait and q are mutually exclusive")
+	}
+
+	queryClient := deployer.NewDeploymentQueryService(cfg.APIClient())
+
 	foundDeployments := []*deployer.DeploymentState{}
 
 	query := &list.QueryRequest{}
@@ -378,8 +360,30 @@ func runDeployments(ctx context.Context, cfg struct {
 		query.Filters = append(query.Filters, &list.Filter{
 			Field: &list.Field{
 				Name: "data.spec.appName",
-				Type: &list.Field_type{
+				Type: &list.Field_Type{
 					Value: &cfg.AppName,
+				},
+			},
+		})
+	}
+
+	if cfg.EnvName != "" {
+		query.Filters = append(query.Filters, &list.Filter{
+			Field: &list.Field{
+				Name: "data.spec.environmentName",
+				Type: &list.Field_Type{
+					Value: &cfg.EnvName,
+				},
+			},
+		})
+	}
+
+	if cfg.Version != "" {
+		query.Filters = append(query.Filters, &list.Filter{
+			Field: &list.Field{
+				Name: "data.spec.version",
+				Type: &list.Field_Type{
+					Value: &cfg.Version,
 				},
 			},
 		})
@@ -398,25 +402,49 @@ func runDeployments(ctx context.Context, cfg struct {
 	}
 
 	if len(foundDeployments) == 0 {
-		return fmt.Errorf("no deployments found")
+		if !cfg.Q {
+			fmt.Println("No deployments found")
+		}
+		return nil
 	}
 
+	runningDeployments := []*deployer.DeploymentState{}
+
 	for _, foundDeployment := range foundDeployments {
+
+		if cfg.Q {
+			fmt.Println(foundDeployment.DeploymentId)
+			continue
+		}
 
 		statusColor, ok := deploymentStatusColor[foundDeployment.Status]
 		if !ok {
 			statusColor = color.FgWhite
 		}
 
+		if cfg.All || foundDeployment.Status == "RUNNING" {
+			runningDeployments = append(runningDeployments, foundDeployment)
+		}
+
 		fmt.Printf("DeploymentID: %s\n", foundDeployment.DeploymentId)
 		fmt.Printf("  Status: %s\n", color.New(statusColor).Sprint(foundDeployment.Status))
 		fmt.Printf("  AppName: %s\n", foundDeployment.Data.Spec.AppName)
 		fmt.Printf("  EnvName: %s\n", foundDeployment.Data.Spec.EnvironmentName)
+		fmt.Printf("  Version: %s\n", foundDeployment.Data.Spec.Version)
 		fmt.Printf("\n")
 
 	}
 
-	return nil
+	if !cfg.Wait {
+		return nil
+	}
+
+	if len(runningDeployments) > 1 {
+		return fmt.Errorf("more than one deployment found")
+	}
+
+	return deploymentStatus(ctx, queryClient, foundDeployments[0].DeploymentId, true)
+
 }
 
 func runStack(ctx context.Context, args struct {
@@ -440,7 +468,7 @@ func stackStatusCommand(stackID string) commander.Runnable {
 		API string `env:"O5_API" flag:"api"`
 	}) error {
 		client := libo5.NewAPI(cfg.API)
-		queryClient := deployer.NewDeploymentQueryService(client)
+		queryClient := deployer.NewCombinedClient(client)
 		res, err := queryClient.GetStack(ctx, &deployer.GetStackRequest{
 			StackId: stackID,
 		})
@@ -463,8 +491,8 @@ func stackTerminateCommand(stackID string) commander.Runnable {
 		API string `env:"O5_API" flag:"api"`
 	}) error {
 		client := libo5.NewAPI(cfg.API)
-		commandClient := deployer.NewDeploymentCommandService(client)
-		queryClient := deployer.NewDeploymentQueryService(client)
+		commandClient := deployer.NewCombinedClient(client)
+		queryClient := deployer.NewCombinedClient(client)
 		stack, err := queryClient.GetStack(ctx, &deployer.GetStackRequest{
 			StackId: stackID,
 		})
@@ -484,51 +512,6 @@ func stackTerminateCommand(stackID string) commander.Runnable {
 		}
 		return nil
 	})
-}
-
-func runStatus(ctx context.Context, cfg struct {
-	AppName string `env:"APP_NAME" flag:"app"`
-	EnvName string `env:"ENV_NAME" flag:"env"`
-	Version string `env:"VERSION" flag:"version"`
-	API     string `env:"O5_API" flag:"api"`
-}) error {
-	client := libo5.NewAPI(cfg.API)
-	queryClient := deployer.NewDeploymentQueryService(client)
-
-	// Obviously this should be server-side
-	foundDeployments := []*deployer.DeploymentState{}
-
-	if err := libo5.Paged(ctx,
-		&deployer.ListDeploymentsRequest{},
-		queryClient.ListDeployments,
-		func(deployment *deployer.DeploymentState) error {
-			if deployment.Data.Spec.EnvironmentName == cfg.EnvName &&
-				deployment.Data.Spec.AppName == cfg.AppName &&
-				deployment.Data.Spec.Version == cfg.Version {
-				foundDeployments = append(foundDeployments, deployment)
-			} else {
-				fmt.Printf("warning: ignoring deployment %s\n", deployment.DeploymentId)
-			}
-			return nil
-		}); err != nil {
-		return fmt.Errorf("list deployments: %w", err)
-	}
-
-	if len(foundDeployments) == 0 {
-		return fmt.Errorf("deployment not found")
-	}
-
-	for _, foundDeployment := range foundDeployments {
-		fmt.Printf("DeploymentID: %s\n", foundDeployment.DeploymentId)
-		fmt.Printf("Status: %s\n", foundDeployment.Status)
-		fmt.Printf("\n")
-		if err := listDeploymentEvents(ctx, queryClient, foundDeployment); err != nil {
-			return err
-		}
-
-	}
-
-	return nil
 }
 
 func listDeploymentEvents(ctx context.Context, queryClient *deployer.DeploymentQueryService, deployment *deployer.DeploymentState) error {
@@ -575,7 +558,7 @@ func listDeploymentEvents(ctx context.Context, queryClient *deployer.DeploymentQ
 }
 
 func runTrigger(ctx context.Context, cfg struct {
-	api.BaseCommand
+	libo5.APIConfig
 	StateCache
 
 	AppName string `env:"APP_NAME" flag:"repo"`
@@ -606,7 +589,7 @@ func runTrigger(ctx context.Context, cfg struct {
 		},
 	}
 
-	client := libo5.NewAPI(cfg.API)
+	client := cfg.APIClient()
 	commandClient := deployer.NewDeploymentCommandService(client)
 
 	_, err := commandClient.TriggerDeployment(ctx, triggerBody)
