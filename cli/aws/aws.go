@@ -1,4 +1,4 @@
-package main
+package aws
 
 import (
 	"context"
@@ -8,25 +8,59 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
-
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/pentops/o5-aws-tool/awsinspect"
 	"github.com/pentops/runner"
 	"github.com/pentops/runner/commander"
 )
 
-var Version string
-
-func main() {
+func CommandSet() *commander.CommandSet {
 
 	cmdGroup := commander.NewCommandSet()
 
 	cmdGroup.Add("logs", commander.NewCommand(runAWSLogs))
+	cmdGroup.Add("events", commander.NewCommand(runEventLogs))
 	cmdGroup.Add("redeploy", commander.NewCommand(runRedeploy))
 
-	cmdGroup.RunMain("o5-aws-tool", Version)
+	stacksGroup := commander.NewCommandSet()
+	stacksGroup.Add("ls", commander.NewCommand(runStacksList))
 
+	cmdGroup.Add("stacks", stacksGroup)
+
+	return cmdGroup
+}
+
+func runStacksList(ctx context.Context, cfg struct{}) error {
+	awsConfig, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load configuration: %w", err)
+	}
+
+	formationClient := cloudformation.NewFromConfig(awsConfig)
+
+	allStatuses := (types.StackStatus("")).Values()
+	wantStatus := make([]types.StackStatus, 0, len(allStatuses))
+	for _, status := range allStatuses {
+		if status == types.StackStatusDeleteComplete {
+			continue
+		}
+		wantStatus = append(wantStatus, status)
+	}
+
+	stacks, err := formationClient.ListStacks(ctx, &cloudformation.ListStacksInput{
+		StackStatusFilter: wantStatus,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, stack := range stacks.StackSummaries {
+		fmt.Printf("Stack: %s\n", *stack.StackName)
+	}
+
+	return nil
 }
 
 func runRedeploy(ctx context.Context, cfg struct {
@@ -59,6 +93,17 @@ func runRedeploy(ctx context.Context, cfg struct {
 		}
 	}
 
+	return nil
+}
+
+func runEventLogs(ctx context.Context, cfg struct {
+	ClusterName string `flag:"cluster-name"`
+}) error {
+	awsConfig, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load configuration: %w", err)
+	}
+	_ = awsConfig
 	return nil
 }
 
