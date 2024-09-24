@@ -3,11 +3,13 @@ package libo5
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/pentops/log.go/log"
 )
@@ -81,6 +83,25 @@ func (c *API) Request(ctx context.Context, method, path string, req, res interfa
 	}
 
 	if httpRes.StatusCode != http.StatusOK {
+		if httpRes.StatusCode == http.StatusUnauthorized {
+			log.WithFields(ctx, map[string]interface{}{
+				"status": httpRes.StatusCode,
+				"body":   string(resBody),
+			}).Error("unexpected status")
+			if c.BearerToken == "" {
+				return fmt.Errorf("unauthorized - try setting $O5_BEARER")
+			} else {
+				parts := strings.Split(c.BearerToken, ".")
+				if len(parts) == 3 {
+					dec, err := base64.RawURLEncoding.DecodeString(parts[1])
+					if err == nil {
+						fmt.Printf("\n====\n" + string(dec) + "\n====\n")
+					}
+				}
+				return fmt.Errorf("unauthorized - check $O5_BEARER")
+			}
+		}
+
 		log.WithFields(ctx, map[string]interface{}{
 			"status":  httpRes.StatusCode,
 			"body":    string(resBody),

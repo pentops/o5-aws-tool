@@ -31,7 +31,7 @@ func prettyPrintJSON(data []byte, truncate bool) {
 	var body string
 
 	buff := &bytes.Buffer{}
-	if err := json.Indent(buff, data, "  |", "  "); err != nil {
+	if err := json.Indent(buff, data, "  | ", "  "); err != nil {
 		fmt.Printf("Error indenting JSON body : %s\n", err)
 		body = string(data)
 	} else {
@@ -41,7 +41,7 @@ func prettyPrintJSON(data []byte, truncate bool) {
 	if truncate && len(body) > 250 {
 		body = body[:250] + "..."
 	}
-	fmt.Printf("  |%s\n", body)
+	fmt.Printf("  | %s\n", body)
 }
 
 func runDanteLs(ctx context.Context, cfg struct {
@@ -53,12 +53,12 @@ func runDanteLs(ctx context.Context, cfg struct {
 	queryClient := dante.NewDeadMessageQueryService(client)
 	commandClient := dante.NewDeadMessageCommandService(client)
 	printMessage := func(state *dante.DeadMessageState) {
-		fmt.Printf("DL %s\n", state.MessageId)
+		fmt.Printf("DL: %s\n", state.MessageId)
 		msg := state.Data.CurrentVersion.Message
-		fmt.Printf("  /%s/%s\n", msg.GrpcService, msg.GrpcMethod)
-
+		fmt.Printf("  Method: /%s/%s\n", msg.GrpcService, msg.GrpcMethod)
+		fmt.Printf("  Handler Env: %s\n", state.Data.Notification.HandlerEnv)
+		fmt.Printf("  Handler App: %s\n", state.Data.Notification.HandlerApp)
 		prettyPrintJSON(msg.Body.Value, true)
-
 		if state.Data.Notification.Problem.UnhandledError != nil {
 			fmt.Printf("  Error: %s", state.Data.Notification.Problem.UnhandledError.Error)
 		}
