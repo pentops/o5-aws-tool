@@ -9,109 +9,6 @@ import (
 	time "time"
 )
 
-// Method_Request Proto: Method_Request
-type Method_Request struct {
-	Body            *schema.Object           `json:"body,omitempty"`
-	PathParameters  []*schema.ObjectProperty `json:"pathParameters,omitempty"`
-	QueryParameters []*schema.ObjectProperty `json:"queryParameters,omitempty"`
-	List            *ListRequest             `json:"list,omitempty"`
-}
-
-// ListRequest_FilterField Proto: ListRequest_FilterField
-type ListRequest_FilterField struct {
-	Name           string   `json:"name,omitempty"`
-	DefaultFilters []string `json:"defaultFilters,omitempty"`
-}
-
-// Service Proto: Service
-type Service struct {
-	Name     string    `json:"name,omitempty"`
-	Methods  []*Method `json:"methods,omitempty"`
-	Audience []string  `json:"audience,omitempty"`
-}
-
-// MethodType Proto Oneof: j5.client.v1.MethodType
-type MethodType struct {
-	J5TypeKey  string                 `json:"!type,omitempty"`
-	StateQuery *MethodType_StateQuery `json:"stateQuery,omitempty"`
-}
-
-func (s MethodType) OneofKey() string {
-	if s.StateQuery != nil {
-		return "stateQuery"
-	}
-	return ""
-}
-
-func (s MethodType) Type() interface{} {
-	if s.StateQuery != nil {
-		return s.StateQuery
-	}
-	return nil
-}
-
-// Metadata Proto: Metadata
-type Metadata struct {
-	BuiltAt *time.Time `json:"builtAt,omitempty"`
-}
-
-// API Proto: API
-type API struct {
-	Packages []*Package `json:"packages,omitempty"`
-	Metadata *Metadata  `json:"metadata,omitempty"`
-}
-
-// StateEntity Proto: StateEntity
-type StateEntity struct {
-	Name            string        `json:"name,omitempty"`
-	FullName        string        `json:"fullName"`
-	SchemaName      string        `json:"schemaName"`
-	Overview        string        `json:"overview,omitempty"`
-	PrimaryKey      []string      `json:"primaryKey,omitempty"`
-	QueryService    *Service      `json:"queryService,omitempty"`
-	CommandServices []*Service    `json:"commandServices,omitempty"`
-	Events          []*StateEvent `json:"events,omitempty"`
-}
-
-// StateEvent Proto: StateEvent
-type StateEvent struct {
-	Name        string `json:"name,omitempty"`
-	FullName    string `json:"fullName"`
-	Description string `json:"description,omitempty"`
-}
-
-// Method Proto: Method
-type Method struct {
-	Name         string               `json:"name,omitempty"`
-	FullGrpcName string               `json:"fullGrpcName,omitempty"`
-	HttpMethod   string               `json:"httpMethod,omitempty"`
-	HttpPath     string               `json:"httpPath,omitempty"`
-	Request      *Method_Request      `json:"request"`
-	ResponseBody *schema.Object       `json:"responseBody"`
-	Auth         *auth.MethodAuthType `json:"auth,omitempty"`
-	MethodType   *MethodType          `json:"methodType,omitempty"`
-}
-
-// ListRequest_SearchField Proto: ListRequest_SearchField
-type ListRequest_SearchField struct {
-	Name string `json:"name,omitempty"`
-}
-
-// ListRequest_SortField_Direction Proto Enum: j5.client.v1.ListRequest_SortField_Direction
-type ListRequest_SortField_Direction string
-
-const (
-	ListRequest_SortField_Direction_UNSPECIFIED ListRequest_SortField_Direction = "UNSPECIFIED"
-	ListRequest_SortField_Direction_ASC         ListRequest_SortField_Direction = "ASC"
-	ListRequest_SortField_Direction_DESC        ListRequest_SortField_Direction = "DESC"
-)
-
-// ListRequest_SortField Proto: ListRequest_SortField
-type ListRequest_SortField struct {
-	Name        string  `json:"name,omitempty"`
-	DefaultSort *string `json:"defaultSort,omitempty"`
-}
-
 // HTTPMethod Proto Enum: j5.client.v1.HTTPMethod
 type HTTPMethod string
 
@@ -135,6 +32,122 @@ type Package struct {
 	Schemas       map[string]*schema.RootSchema `json:"schemas,omitempty"`
 }
 
+// Method Proto: Method
+type Method struct {
+	Name         string               `json:"name,omitempty"`
+	FullGrpcName string               `json:"fullGrpcName,omitempty"`
+	HttpMethod   string               `json:"httpMethod,omitempty"`
+	HttpPath     string               `json:"httpPath,omitempty"`
+	Request      *Method_Request      `json:"request"`
+	ResponseBody *schema.Object       `json:"responseBody"`
+	Auth         *auth.MethodAuthType `json:"auth,omitempty"`
+	MethodType   *MethodType          `json:"methodType,omitempty"`
+}
+
+// Method_Request Proto: Method_Request
+type Method_Request struct {
+	Body            *schema.Object           `json:"body,omitempty"`
+	PathParameters  []*schema.ObjectProperty `json:"pathParameters,omitempty"`
+	QueryParameters []*schema.ObjectProperty `json:"queryParameters,omitempty"`
+	List            *ListRequest             `json:"list,omitempty"`
+}
+
+// ListRequest_FilterField Proto: ListRequest_FilterField
+type ListRequest_FilterField struct {
+	Name           string   `json:"name,omitempty"`
+	DefaultFilters []string `json:"defaultFilters,omitempty"`
+}
+
+// MethodType Proto Oneof: j5.client.v1.MethodType
+type MethodType struct {
+	J5TypeKey  string                 `json:"!type,omitempty"`
+	StateQuery *MethodType_StateQuery `json:"stateQuery,omitempty"`
+}
+
+func (s MethodType) OneofKey() string {
+	if s.StateQuery != nil {
+		return "stateQuery"
+	}
+	return ""
+}
+
+func (s MethodType) Type() interface{} {
+	if s.StateQuery != nil {
+		return s.StateQuery
+	}
+	return nil
+}
+
+// ListRequest Proto: ListRequest
+type ListRequest struct {
+	SearchableFields []*ListRequest_SearchField `json:"searchableFields,omitempty"`
+	SortableFields   []*ListRequest_SortField   `json:"sortableFields,omitempty"`
+	FilterableFields []*ListRequest_FilterField `json:"filterableFields,omitempty"`
+}
+
+// StateEntity Proto: StateEntity
+type StateEntity struct {
+	Name            string        `json:"name,omitempty"`
+	FullName        string        `json:"fullName"`
+	SchemaName      string        `json:"schemaName"`
+	Overview        string        `json:"overview,omitempty"`
+	PrimaryKey      []string      `json:"primaryKey,omitempty"`
+	QueryService    *Service      `json:"queryService,omitempty"`
+	CommandServices []*Service    `json:"commandServices,omitempty"`
+	Events          []*StateEvent `json:"events,omitempty"`
+}
+
+// Service Proto: Service
+type Service struct {
+	Name     string    `json:"name,omitempty"`
+	Methods  []*Method `json:"methods,omitempty"`
+	Audience []string  `json:"audience,omitempty"`
+}
+
+// Metadata Proto: Metadata
+type Metadata struct {
+	BuiltAt *time.Time `json:"builtAt,omitempty"`
+}
+
+// MethodType_StateQuery Proto: MethodType_StateQuery
+type MethodType_StateQuery struct {
+	EntityName string `json:"entityName,omitempty"`
+	QueryPart  string `json:"queryPart,omitempty"`
+}
+
+// ListRequest_SearchField Proto: ListRequest_SearchField
+type ListRequest_SearchField struct {
+	Name string `json:"name,omitempty"`
+}
+
+// ListRequest_SortField Proto: ListRequest_SortField
+type ListRequest_SortField struct {
+	Name        string  `json:"name,omitempty"`
+	DefaultSort *string `json:"defaultSort,omitempty"`
+}
+
+// StateEvent Proto: StateEvent
+type StateEvent struct {
+	Name        string `json:"name,omitempty"`
+	FullName    string `json:"fullName"`
+	Description string `json:"description,omitempty"`
+}
+
+// API Proto: API
+type API struct {
+	Packages []*Package `json:"packages,omitempty"`
+	Metadata *Metadata  `json:"metadata,omitempty"`
+}
+
+// ListRequest_SortField_Direction Proto Enum: j5.client.v1.ListRequest_SortField_Direction
+type ListRequest_SortField_Direction string
+
+const (
+	ListRequest_SortField_Direction_UNSPECIFIED ListRequest_SortField_Direction = "UNSPECIFIED"
+	ListRequest_SortField_Direction_ASC         ListRequest_SortField_Direction = "ASC"
+	ListRequest_SortField_Direction_DESC        ListRequest_SortField_Direction = "DESC"
+)
+
 // StateQueryPart Proto Enum: j5.client.v1.StateQueryPart
 type StateQueryPart string
 
@@ -144,16 +157,3 @@ const (
 	StateQueryPart_LIST        StateQueryPart = "LIST"
 	StateQueryPart_LIST_EVENTS StateQueryPart = "LIST_EVENTS"
 )
-
-// ListRequest Proto: ListRequest
-type ListRequest struct {
-	SearchableFields []*ListRequest_SearchField `json:"searchableFields,omitempty"`
-	SortableFields   []*ListRequest_SortField   `json:"sortableFields,omitempty"`
-	FilterableFields []*ListRequest_FilterField `json:"filterableFields,omitempty"`
-}
-
-// MethodType_StateQuery Proto: MethodType_StateQuery
-type MethodType_StateQuery struct {
-	EntityName string `json:"entityName,omitempty"`
-	QueryPart  string `json:"queryPart,omitempty"`
-}

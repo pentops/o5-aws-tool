@@ -10,118 +10,10 @@ type OpenTextRules struct {
 	Searching *SearchingConstraint `json:"searching,omitempty"`
 }
 
-// IntegerRules Proto: IntegerRules
-type IntegerRules struct {
-	Filtering *FilteringConstraint `json:"filtering,omitempty"`
-	Sorting   *SortingConstraint   `json:"sorting,omitempty"`
-}
-
-// SortingConstraint Proto: SortingConstraint
-type SortingConstraint struct {
-	Sortable    bool `json:"sortable,omitempty"`
-	DefaultSort bool `json:"defaultSort,omitempty"`
-}
-
-// Sort Proto: Sort
-type Sort struct {
-	Field      string `json:"field,omitempty"`
-	Descending bool   `json:"descending,omitempty"`
-}
-
-// Or Proto: Or
-type Or struct {
-	Filters []*Filter `json:"filters,omitempty"`
-}
-
-// Field Proto: Field
-type Field struct {
-	Name string     `json:"name,omitempty"`
-	Type *FieldType `json:"type"`
-}
-
-// PageRequest Proto: PageRequest
-type PageRequest struct {
-	Token    *string `json:"token,omitempty"`
-	PageSize *int64  `json:"pageSize,omitempty"`
-}
-
-// KeyRules Proto: KeyRules
-type KeyRules struct {
-	Filtering *FilteringConstraint `json:"filtering,omitempty"`
-}
-
-// FilteringConstraint Proto: FilteringConstraint
-type FilteringConstraint struct {
-	Filterable     bool     `json:"filterable,omitempty"`
-	DefaultFilters []string `json:"defaultFilters,omitempty"`
-}
-
-// BoolRules Proto: BoolRules
-type BoolRules struct {
-	Filtering *FilteringConstraint `json:"filtering,omitempty"`
-}
-
-// EnumRules Proto: EnumRules
-type EnumRules struct {
-	Filtering *FilteringConstraint `json:"filtering,omitempty"`
-}
-
-// PageResponse Proto: PageResponse
-type PageResponse struct {
-	NextToken *string `json:"nextToken,omitempty"`
-}
-
-// FieldType Proto: FieldType
-type FieldType struct {
-	Value string `json:"value,omitempty"`
-	Range *Range `json:"range,omitempty"`
-}
-
-// SearchingConstraint Proto: SearchingConstraint
-type SearchingConstraint struct {
-	Searchable      bool   `json:"searchable,omitempty"`
-	FieldIdentifier string `json:"fieldIdentifier,omitempty"`
-}
-
-// Range Proto: Range
-type Range struct {
-	Min string `json:"min,omitempty"`
-	Max string `json:"max,omitempty"`
-}
-
 // FloatRules Proto: FloatRules
 type FloatRules struct {
 	Filtering *FilteringConstraint `json:"filtering,omitempty"`
 	Sorting   *SortingConstraint   `json:"sorting,omitempty"`
-}
-
-// OneofRules Proto: OneofRules
-type OneofRules struct {
-	Filtering *FilteringConstraint `json:"filtering,omitempty"`
-}
-
-// And Proto: And
-type And struct {
-	Filters []*Filter `json:"filters,omitempty"`
-}
-
-// Search Proto: Search
-type Search struct {
-	Field string `json:"field,omitempty"`
-	Value string `json:"value,omitempty"`
-}
-
-// TimestampRules Proto: TimestampRules
-type TimestampRules struct {
-	Filtering *FilteringConstraint `json:"filtering,omitempty"`
-	Sorting   *SortingConstraint   `json:"sorting,omitempty"`
-}
-
-// QueryRequest Proto: QueryRequest
-type QueryRequest struct {
-	Searches []*Search `json:"searches,omitempty"`
-	Sorts    []*Sort   `json:"sorts,omitempty"`
-	Filters  []*Filter `json:"filters,omitempty"`
 }
 
 // Filter Proto Oneof: j5.list.v1.Filter
@@ -156,4 +48,112 @@ func (s Filter) Type() interface{} {
 		return s.Or
 	}
 	return nil
+}
+
+// EnumRules Proto: EnumRules
+type EnumRules struct {
+	Filtering *FilteringConstraint `json:"filtering,omitempty"`
+}
+
+// And Proto: And
+type And struct {
+	Filters []*Filter `json:"filters,omitempty"`
+}
+
+// Search Proto: Search
+type Search struct {
+	Field string `json:"field,omitempty"`
+	Value string `json:"value,omitempty"`
+}
+
+// FieldType Proto: FieldType
+type FieldType struct {
+	Value string `json:"value,omitempty"`
+	Range *Range `json:"range,omitempty"`
+}
+
+// SearchingConstraint Proto: SearchingConstraint
+type SearchingConstraint struct {
+	Searchable      bool   `json:"searchable,omitempty"`
+	FieldIdentifier string `json:"fieldIdentifier,omitempty"`
+}
+
+// Sort Proto: Sort
+type Sort struct {
+	Field      string `json:"field,omitempty"`
+	Descending bool   `json:"descending,omitempty"`
+}
+
+// KeyRules Proto: KeyRules
+type KeyRules struct {
+	Filtering *FilteringConstraint `json:"filtering,omitempty"`
+}
+
+// IntegerRules Proto: IntegerRules
+type IntegerRules struct {
+	Filtering *FilteringConstraint `json:"filtering,omitempty"`
+	Sorting   *SortingConstraint   `json:"sorting,omitempty"`
+}
+
+// BoolRules Proto: BoolRules
+type BoolRules struct {
+	Filtering *FilteringConstraint `json:"filtering,omitempty"`
+}
+
+// SortingConstraint Proto: SortingConstraint
+type SortingConstraint struct {
+	Sortable    bool `json:"sortable,omitempty"`
+	DefaultSort bool `json:"defaultSort,omitempty"`
+}
+
+// Field Proto: Field
+type Field struct {
+	Name string     `json:"name,omitempty"`
+	Type *FieldType `json:"type"`
+}
+
+// TimestampRules Proto: TimestampRules
+type TimestampRules struct {
+	Filtering *FilteringConstraint `json:"filtering,omitempty"`
+	Sorting   *SortingConstraint   `json:"sorting,omitempty"`
+}
+
+// PageResponse Proto: PageResponse
+type PageResponse struct {
+	NextToken *string `json:"nextToken,omitempty"`
+}
+
+// OneofRules Proto: OneofRules
+type OneofRules struct {
+	Filtering *FilteringConstraint `json:"filtering,omitempty"`
+}
+
+// QueryRequest Proto: QueryRequest
+type QueryRequest struct {
+	Searches []*Search `json:"searches,omitempty"`
+	Sorts    []*Sort   `json:"sorts,omitempty"`
+	Filters  []*Filter `json:"filters,omitempty"`
+}
+
+// Range Proto: Range
+type Range struct {
+	Min string `json:"min,omitempty"`
+	Max string `json:"max,omitempty"`
+}
+
+// Or Proto: Or
+type Or struct {
+	Filters []*Filter `json:"filters,omitempty"`
+}
+
+// FilteringConstraint Proto: FilteringConstraint
+type FilteringConstraint struct {
+	Filterable     bool     `json:"filterable,omitempty"`
+	DefaultFilters []string `json:"defaultFilters,omitempty"`
+}
+
+// PageRequest Proto: PageRequest
+type PageRequest struct {
+	Token    *string `json:"token,omitempty"`
+	PageSize *int64  `json:"pageSize,omitempty"`
 }

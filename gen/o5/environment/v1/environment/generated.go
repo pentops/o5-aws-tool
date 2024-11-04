@@ -5,10 +5,17 @@ package environment
 
 import ()
 
-// RDSHost Proto: RDSHost
-type RDSHost struct {
-	ServerGroup string `json:"serverGroup,omitempty"`
-	SecretName  string `json:"secretName,omitempty"`
+// CustomVariable_Join Proto: CustomVariable_Join
+type CustomVariable_Join struct {
+	Delimiter string   `json:"delimiter,omitempty"`
+	Values    []string `json:"values,omitempty"`
+}
+
+// CombinedConfig Proto: CombinedConfig
+type CombinedConfig struct {
+	Name         string         `json:"name,omitempty"`
+	EcsCluster   *ECSCluster    `json:"ecsCluster,omitempty"`
+	Environments []*Environment `json:"environments,omitempty"`
 }
 
 // AWSLink Proto: AWSLink
@@ -16,32 +23,6 @@ type AWSLink struct {
 	LookupName string `json:"lookupName,omitempty"`
 	FullName   string `json:"fullName,omitempty"`
 	SnsPrefix  string `json:"snsPrefix,omitempty"`
-}
-
-// AWSEnvironment Proto: AWSEnvironment
-type AWSEnvironment struct {
-	HostHeader       *string           `json:"hostHeader,omitempty"`
-	EnvironmentLinks []*AWSLink        `json:"environmentLinks,omitempty"`
-	IamPolicies      []*NamedIAMPolicy `json:"iamPolicies,omitempty"`
-}
-
-// CustomVariable_Join Proto: CustomVariable_Join
-type CustomVariable_Join struct {
-	Delimiter string   `json:"delimiter,omitempty"`
-	Values    []string `json:"values,omitempty"`
-}
-
-// CustomVariable Proto: CustomVariable
-type CustomVariable struct {
-	Name  string               `json:"name,omitempty"`
-	Value string               `json:"value,omitempty"`
-	Join  *CustomVariable_Join `json:"join,omitempty"`
-}
-
-// Cluster Proto: Cluster
-type Cluster struct {
-	Name       string      `json:"name,omitempty"`
-	EcsCluster *ECSCluster `json:"ecsCluster,omitempty"`
 }
 
 // Environment Proto: Environment
@@ -54,17 +35,16 @@ type Environment struct {
 	Aws         *AWSEnvironment   `json:"aws,omitempty"`
 }
 
-// CombinedConfig Proto: CombinedConfig
-type CombinedConfig struct {
-	Name         string         `json:"name,omitempty"`
-	EcsCluster   *ECSCluster    `json:"ecsCluster,omitempty"`
-	Environments []*Environment `json:"environments,omitempty"`
-}
-
 // NamedIAMPolicy Proto: NamedIAMPolicy
 type NamedIAMPolicy struct {
 	Name      string `json:"name,omitempty"`
 	PolicyArn string `json:"policyArn,omitempty"`
+}
+
+// RDSHost Proto: RDSHost
+type RDSHost struct {
+	ServerGroup string `json:"serverGroup,omitempty"`
+	SecretName  string `json:"secretName,omitempty"`
 }
 
 // ECSCluster Proto: ECSCluster
@@ -83,4 +63,24 @@ type ECSCluster struct {
 	SidecarImageVersion  string     `json:"sidecarImageVersion,omitempty"`
 	SidecarImageRepo     *string    `json:"sidecarImageRepo,omitempty"`
 	GlobalNamespace      string     `json:"globalNamespace,omitempty"`
+}
+
+// Cluster Proto: Cluster
+type Cluster struct {
+	Name       string      `json:"name,omitempty"`
+	EcsCluster *ECSCluster `json:"ecsCluster,omitempty"`
+}
+
+// CustomVariable Proto: CustomVariable
+type CustomVariable struct {
+	Name  string               `json:"name,omitempty"`
+	Value string               `json:"value,omitempty"`
+	Join  *CustomVariable_Join `json:"join,omitempty"`
+}
+
+// AWSEnvironment Proto: AWSEnvironment
+type AWSEnvironment struct {
+	HostHeader       *string           `json:"hostHeader,omitempty"`
+	EnvironmentLinks []*AWSLink        `json:"environmentLinks,omitempty"`
+	IamPolicies      []*NamedIAMPolicy `json:"iamPolicies,omitempty"`
 }

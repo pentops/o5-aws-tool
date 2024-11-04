@@ -142,7 +142,7 @@ type DownloadImageResponse struct {
 type DownloadSwaggerRequest struct {
 	Owner   string `json:"-" path:"owner"`
 	Name    string `json:"-" path:"name"`
-	Version string `path:"version" json:"-"`
+	Version string `json:"-" path:"version"`
 }
 
 func (s DownloadSwaggerRequest) QueryParameters() (url.Values, error) {
@@ -156,8 +156,8 @@ type DownloadSwaggerResponse struct {
 
 // DownloadClientAPIRequest
 type DownloadClientAPIRequest struct {
-	Owner   string `json:"-" path:"owner"`
-	Name    string `path:"name" json:"-"`
+	Owner   string `path:"owner" json:"-"`
+	Name    string `json:"-" path:"name"`
 	Version string `json:"-" path:"version"`
 }
 
