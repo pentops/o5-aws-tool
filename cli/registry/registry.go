@@ -33,12 +33,12 @@ func runLs(ctx context.Context, cfg struct {
 
 	registryClient := github.NewRepoQueryService(client)
 
-	repos, err := registryClient.ListRepos(ctx, &github.ListReposRequest{})
+	repos, err := libo5.PagedAll(ctx, &github.ListReposRequest{}, registryClient.ListRepos)
 	if err != nil {
 		return err
 	}
 
-	for _, repo := range repos.Repos {
+	for _, repo := range repos {
 		fmt.Printf("Repo: %s/%s\n", repo.Owner, repo.Name)
 		for _, branch := range repo.Data.Branches {
 			fmt.Printf("  Branch: %s\n", branch.BranchName)
