@@ -222,306 +222,6 @@ type SetClusterOverrideResponse struct {
 	State *ClusterState `json:"state"`
 }
 
-// StackQueryService
-type StackQueryService struct {
-	Requester
-}
-
-func NewStackQueryService(requester Requester) *StackQueryService {
-	return &StackQueryService{
-		Requester: requester,
-	}
-}
-
-func (s StackQueryService) GetStack(ctx context.Context, req *GetStackRequest) (*GetStackResponse, error) {
-	pathParts := make([]string, 6)
-	pathParts[0] = ""
-	pathParts[1] = "deployer"
-	pathParts[2] = "v1"
-	pathParts[3] = "q"
-	pathParts[4] = "stack"
-	if req.StackId == "" {
-		return nil, errors.New("required field \"StackId\" not set")
-	}
-	pathParts[5] = req.StackId
-	path := strings.Join(pathParts, "/")
-	if query, err := req.QueryParameters(); err != nil {
-		return nil, err
-	} else if len(query) > 0 {
-		path += "?" + query.Encode()
-	}
-	resp := &GetStackResponse{}
-	err := s.Request(ctx, "GET", path, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (s StackQueryService) ListStacks(ctx context.Context, req *ListStacksRequest) (*ListStacksResponse, error) {
-	pathParts := make([]string, 5)
-	pathParts[0] = ""
-	pathParts[1] = "deployer"
-	pathParts[2] = "v1"
-	pathParts[3] = "q"
-	pathParts[4] = "stacks"
-	path := strings.Join(pathParts, "/")
-	resp := &ListStacksResponse{}
-	err := s.Request(ctx, "POST", path, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (s StackQueryService) ListStackEvents(ctx context.Context, req *ListStackEventsRequest) (*ListStackEventsResponse, error) {
-	pathParts := make([]string, 7)
-	pathParts[0] = ""
-	pathParts[1] = "deployer"
-	pathParts[2] = "v1"
-	pathParts[3] = "q"
-	pathParts[4] = "stack"
-	if req.StackId == "" {
-		return nil, errors.New("required field \"StackId\" not set")
-	}
-	pathParts[5] = req.StackId
-	pathParts[6] = "events"
-	path := strings.Join(pathParts, "/")
-	resp := &ListStackEventsResponse{}
-	err := s.Request(ctx, "POST", path, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// GetStackRequest
-type GetStackRequest struct {
-	StackId string `json:"-" path:"stackId"`
-}
-
-func (s GetStackRequest) QueryParameters() (url.Values, error) {
-	values := url.Values{}
-	return values, nil
-}
-
-// GetStackResponse
-type GetStackResponse struct {
-	State  *StackState   `json:"state,omitempty"`
-	Events []*StackEvent `json:"events,omitempty"`
-}
-
-// ListStacksRequest
-type ListStacksRequest struct {
-	Page  *list.PageRequest  `json:"page,omitempty"`
-	Query *list.QueryRequest `json:"query,omitempty"`
-}
-
-func (s *ListStacksRequest) SetPageToken(pageToken string) {
-	if s.Page == nil {
-		s.Page = &list.PageRequest{}
-	}
-	s.Page.Token = &pageToken
-}
-
-// ListStacksResponse
-type ListStacksResponse struct {
-	Stacks []*StackState      `json:"stacks,omitempty"`
-	Page   *list.PageResponse `json:"page,omitempty"`
-}
-
-func (s ListStacksResponse) GetPageToken() *string {
-	if s.Page == nil {
-		return nil
-	}
-	return s.Page.NextToken
-}
-
-func (s ListStacksResponse) GetItems() []*StackState {
-	return s.Stacks
-}
-
-// ListStackEventsRequest
-type ListStackEventsRequest struct {
-	Page    *list.PageRequest  `json:"page,omitempty"`
-	Query   *list.QueryRequest `json:"query,omitempty"`
-	StackId string             `path:"stackId" json:"-"`
-}
-
-func (s *ListStackEventsRequest) SetPageToken(pageToken string) {
-	if s.Page == nil {
-		s.Page = &list.PageRequest{}
-	}
-	s.Page.Token = &pageToken
-}
-
-// ListStackEventsResponse
-type ListStackEventsResponse struct {
-	Events []*StackEvent      `json:"events,omitempty"`
-	Page   *list.PageResponse `json:"page,omitempty"`
-}
-
-func (s ListStackEventsResponse) GetPageToken() *string {
-	if s.Page == nil {
-		return nil
-	}
-	return s.Page.NextToken
-}
-
-func (s ListStackEventsResponse) GetItems() []*StackEvent {
-	return s.Events
-}
-
-// EnvironmentQueryService
-type EnvironmentQueryService struct {
-	Requester
-}
-
-func NewEnvironmentQueryService(requester Requester) *EnvironmentQueryService {
-	return &EnvironmentQueryService{
-		Requester: requester,
-	}
-}
-
-func (s EnvironmentQueryService) ListEnvironments(ctx context.Context, req *ListEnvironmentsRequest) (*ListEnvironmentsResponse, error) {
-	pathParts := make([]string, 5)
-	pathParts[0] = ""
-	pathParts[1] = "deployer"
-	pathParts[2] = "v1"
-	pathParts[3] = "q"
-	pathParts[4] = "environments"
-	path := strings.Join(pathParts, "/")
-	resp := &ListEnvironmentsResponse{}
-	err := s.Request(ctx, "POST", path, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (s EnvironmentQueryService) GetEnvironment(ctx context.Context, req *GetEnvironmentRequest) (*GetEnvironmentResponse, error) {
-	pathParts := make([]string, 6)
-	pathParts[0] = ""
-	pathParts[1] = "deployer"
-	pathParts[2] = "v1"
-	pathParts[3] = "q"
-	pathParts[4] = "environment"
-	if req.EnvironmentId == "" {
-		return nil, errors.New("required field \"EnvironmentId\" not set")
-	}
-	pathParts[5] = req.EnvironmentId
-	path := strings.Join(pathParts, "/")
-	if query, err := req.QueryParameters(); err != nil {
-		return nil, err
-	} else if len(query) > 0 {
-		path += "?" + query.Encode()
-	}
-	resp := &GetEnvironmentResponse{}
-	err := s.Request(ctx, "GET", path, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (s EnvironmentQueryService) ListEnvironmentEvents(ctx context.Context, req *ListEnvironmentEventsRequest) (*ListEnvironmentEventsResponse, error) {
-	pathParts := make([]string, 7)
-	pathParts[0] = ""
-	pathParts[1] = "deployer"
-	pathParts[2] = "v1"
-	pathParts[3] = "q"
-	pathParts[4] = "environment"
-	if req.EnvironmentId == "" {
-		return nil, errors.New("required field \"EnvironmentId\" not set")
-	}
-	pathParts[5] = req.EnvironmentId
-	pathParts[6] = "events"
-	path := strings.Join(pathParts, "/")
-	resp := &ListEnvironmentEventsResponse{}
-	err := s.Request(ctx, "POST", path, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// ListEnvironmentsRequest
-type ListEnvironmentsRequest struct {
-	Page  *list.PageRequest  `json:"page,omitempty"`
-	Query *list.QueryRequest `json:"query,omitempty"`
-}
-
-func (s *ListEnvironmentsRequest) SetPageToken(pageToken string) {
-	if s.Page == nil {
-		s.Page = &list.PageRequest{}
-	}
-	s.Page.Token = &pageToken
-}
-
-// ListEnvironmentsResponse
-type ListEnvironmentsResponse struct {
-	Environments []*EnvironmentState `json:"environments,omitempty"`
-	Page         *list.PageResponse  `json:"page,omitempty"`
-}
-
-func (s ListEnvironmentsResponse) GetPageToken() *string {
-	if s.Page == nil {
-		return nil
-	}
-	return s.Page.NextToken
-}
-
-func (s ListEnvironmentsResponse) GetItems() []*EnvironmentState {
-	return s.Environments
-}
-
-// GetEnvironmentRequest
-type GetEnvironmentRequest struct {
-	EnvironmentId string `json:"-" path:"environmentId"`
-}
-
-func (s GetEnvironmentRequest) QueryParameters() (url.Values, error) {
-	values := url.Values{}
-	return values, nil
-}
-
-// GetEnvironmentResponse
-type GetEnvironmentResponse struct {
-	State  *EnvironmentState   `json:"state,omitempty"`
-	Events []*EnvironmentEvent `json:"events,omitempty"`
-}
-
-// ListEnvironmentEventsRequest
-type ListEnvironmentEventsRequest struct {
-	Page          *list.PageRequest  `json:"page,omitempty"`
-	Query         *list.QueryRequest `json:"query,omitempty"`
-	EnvironmentId string             `path:"environmentId" json:"-"`
-}
-
-func (s *ListEnvironmentEventsRequest) SetPageToken(pageToken string) {
-	if s.Page == nil {
-		s.Page = &list.PageRequest{}
-	}
-	s.Page.Token = &pageToken
-}
-
-// ListEnvironmentEventsResponse
-type ListEnvironmentEventsResponse struct {
-	Events []*EnvironmentEvent `json:"events,omitempty"`
-	Page   *list.PageResponse  `json:"page,omitempty"`
-}
-
-func (s ListEnvironmentEventsResponse) GetPageToken() *string {
-	if s.Page == nil {
-		return nil
-	}
-	return s.Page.NextToken
-}
-
-func (s ListEnvironmentEventsResponse) GetItems() []*EnvironmentEvent {
-	return s.Events
-}
-
 // ClusterQueryService
 type ClusterQueryService struct {
 	Requester
@@ -672,6 +372,306 @@ func (s ListClusterEventsResponse) GetItems() []*ClusterEvent {
 	return s.Events
 }
 
+// StackQueryService
+type StackQueryService struct {
+	Requester
+}
+
+func NewStackQueryService(requester Requester) *StackQueryService {
+	return &StackQueryService{
+		Requester: requester,
+	}
+}
+
+func (s StackQueryService) GetStack(ctx context.Context, req *GetStackRequest) (*GetStackResponse, error) {
+	pathParts := make([]string, 6)
+	pathParts[0] = ""
+	pathParts[1] = "deployer"
+	pathParts[2] = "v1"
+	pathParts[3] = "q"
+	pathParts[4] = "stack"
+	if req.StackId == "" {
+		return nil, errors.New("required field \"StackId\" not set")
+	}
+	pathParts[5] = req.StackId
+	path := strings.Join(pathParts, "/")
+	if query, err := req.QueryParameters(); err != nil {
+		return nil, err
+	} else if len(query) > 0 {
+		path += "?" + query.Encode()
+	}
+	resp := &GetStackResponse{}
+	err := s.Request(ctx, "GET", path, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s StackQueryService) ListStacks(ctx context.Context, req *ListStacksRequest) (*ListStacksResponse, error) {
+	pathParts := make([]string, 5)
+	pathParts[0] = ""
+	pathParts[1] = "deployer"
+	pathParts[2] = "v1"
+	pathParts[3] = "q"
+	pathParts[4] = "stacks"
+	path := strings.Join(pathParts, "/")
+	resp := &ListStacksResponse{}
+	err := s.Request(ctx, "POST", path, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s StackQueryService) ListStackEvents(ctx context.Context, req *ListStackEventsRequest) (*ListStackEventsResponse, error) {
+	pathParts := make([]string, 7)
+	pathParts[0] = ""
+	pathParts[1] = "deployer"
+	pathParts[2] = "v1"
+	pathParts[3] = "q"
+	pathParts[4] = "stack"
+	if req.StackId == "" {
+		return nil, errors.New("required field \"StackId\" not set")
+	}
+	pathParts[5] = req.StackId
+	pathParts[6] = "events"
+	path := strings.Join(pathParts, "/")
+	resp := &ListStackEventsResponse{}
+	err := s.Request(ctx, "POST", path, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetStackRequest
+type GetStackRequest struct {
+	StackId string `path:"stackId" json:"-"`
+}
+
+func (s GetStackRequest) QueryParameters() (url.Values, error) {
+	values := url.Values{}
+	return values, nil
+}
+
+// GetStackResponse
+type GetStackResponse struct {
+	State  *StackState   `json:"state,omitempty"`
+	Events []*StackEvent `json:"events,omitempty"`
+}
+
+// ListStacksRequest
+type ListStacksRequest struct {
+	Page  *list.PageRequest  `json:"page,omitempty"`
+	Query *list.QueryRequest `json:"query,omitempty"`
+}
+
+func (s *ListStacksRequest) SetPageToken(pageToken string) {
+	if s.Page == nil {
+		s.Page = &list.PageRequest{}
+	}
+	s.Page.Token = &pageToken
+}
+
+// ListStacksResponse
+type ListStacksResponse struct {
+	Stacks []*StackState      `json:"stacks,omitempty"`
+	Page   *list.PageResponse `json:"page,omitempty"`
+}
+
+func (s ListStacksResponse) GetPageToken() *string {
+	if s.Page == nil {
+		return nil
+	}
+	return s.Page.NextToken
+}
+
+func (s ListStacksResponse) GetItems() []*StackState {
+	return s.Stacks
+}
+
+// ListStackEventsRequest
+type ListStackEventsRequest struct {
+	Page    *list.PageRequest  `json:"page,omitempty"`
+	Query   *list.QueryRequest `json:"query,omitempty"`
+	StackId string             `json:"-" path:"stackId"`
+}
+
+func (s *ListStackEventsRequest) SetPageToken(pageToken string) {
+	if s.Page == nil {
+		s.Page = &list.PageRequest{}
+	}
+	s.Page.Token = &pageToken
+}
+
+// ListStackEventsResponse
+type ListStackEventsResponse struct {
+	Events []*StackEvent      `json:"events,omitempty"`
+	Page   *list.PageResponse `json:"page,omitempty"`
+}
+
+func (s ListStackEventsResponse) GetPageToken() *string {
+	if s.Page == nil {
+		return nil
+	}
+	return s.Page.NextToken
+}
+
+func (s ListStackEventsResponse) GetItems() []*StackEvent {
+	return s.Events
+}
+
+// EnvironmentQueryService
+type EnvironmentQueryService struct {
+	Requester
+}
+
+func NewEnvironmentQueryService(requester Requester) *EnvironmentQueryService {
+	return &EnvironmentQueryService{
+		Requester: requester,
+	}
+}
+
+func (s EnvironmentQueryService) ListEnvironments(ctx context.Context, req *ListEnvironmentsRequest) (*ListEnvironmentsResponse, error) {
+	pathParts := make([]string, 5)
+	pathParts[0] = ""
+	pathParts[1] = "deployer"
+	pathParts[2] = "v1"
+	pathParts[3] = "q"
+	pathParts[4] = "environments"
+	path := strings.Join(pathParts, "/")
+	resp := &ListEnvironmentsResponse{}
+	err := s.Request(ctx, "POST", path, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s EnvironmentQueryService) GetEnvironment(ctx context.Context, req *GetEnvironmentRequest) (*GetEnvironmentResponse, error) {
+	pathParts := make([]string, 6)
+	pathParts[0] = ""
+	pathParts[1] = "deployer"
+	pathParts[2] = "v1"
+	pathParts[3] = "q"
+	pathParts[4] = "environment"
+	if req.EnvironmentId == "" {
+		return nil, errors.New("required field \"EnvironmentId\" not set")
+	}
+	pathParts[5] = req.EnvironmentId
+	path := strings.Join(pathParts, "/")
+	if query, err := req.QueryParameters(); err != nil {
+		return nil, err
+	} else if len(query) > 0 {
+		path += "?" + query.Encode()
+	}
+	resp := &GetEnvironmentResponse{}
+	err := s.Request(ctx, "GET", path, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s EnvironmentQueryService) ListEnvironmentEvents(ctx context.Context, req *ListEnvironmentEventsRequest) (*ListEnvironmentEventsResponse, error) {
+	pathParts := make([]string, 7)
+	pathParts[0] = ""
+	pathParts[1] = "deployer"
+	pathParts[2] = "v1"
+	pathParts[3] = "q"
+	pathParts[4] = "environment"
+	if req.EnvironmentId == "" {
+		return nil, errors.New("required field \"EnvironmentId\" not set")
+	}
+	pathParts[5] = req.EnvironmentId
+	pathParts[6] = "events"
+	path := strings.Join(pathParts, "/")
+	resp := &ListEnvironmentEventsResponse{}
+	err := s.Request(ctx, "POST", path, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ListEnvironmentsRequest
+type ListEnvironmentsRequest struct {
+	Page  *list.PageRequest  `json:"page,omitempty"`
+	Query *list.QueryRequest `json:"query,omitempty"`
+}
+
+func (s *ListEnvironmentsRequest) SetPageToken(pageToken string) {
+	if s.Page == nil {
+		s.Page = &list.PageRequest{}
+	}
+	s.Page.Token = &pageToken
+}
+
+// ListEnvironmentsResponse
+type ListEnvironmentsResponse struct {
+	Environments []*EnvironmentState `json:"environments,omitempty"`
+	Page         *list.PageResponse  `json:"page,omitempty"`
+}
+
+func (s ListEnvironmentsResponse) GetPageToken() *string {
+	if s.Page == nil {
+		return nil
+	}
+	return s.Page.NextToken
+}
+
+func (s ListEnvironmentsResponse) GetItems() []*EnvironmentState {
+	return s.Environments
+}
+
+// GetEnvironmentRequest
+type GetEnvironmentRequest struct {
+	EnvironmentId string `json:"-" path:"environmentId"`
+}
+
+func (s GetEnvironmentRequest) QueryParameters() (url.Values, error) {
+	values := url.Values{}
+	return values, nil
+}
+
+// GetEnvironmentResponse
+type GetEnvironmentResponse struct {
+	State  *EnvironmentState   `json:"state,omitempty"`
+	Events []*EnvironmentEvent `json:"events,omitempty"`
+}
+
+// ListEnvironmentEventsRequest
+type ListEnvironmentEventsRequest struct {
+	Page          *list.PageRequest  `json:"page,omitempty"`
+	Query         *list.QueryRequest `json:"query,omitempty"`
+	EnvironmentId string             `json:"-" path:"environmentId"`
+}
+
+func (s *ListEnvironmentEventsRequest) SetPageToken(pageToken string) {
+	if s.Page == nil {
+		s.Page = &list.PageRequest{}
+	}
+	s.Page.Token = &pageToken
+}
+
+// ListEnvironmentEventsResponse
+type ListEnvironmentEventsResponse struct {
+	Events []*EnvironmentEvent `json:"events,omitempty"`
+	Page   *list.PageResponse  `json:"page,omitempty"`
+}
+
+func (s ListEnvironmentEventsResponse) GetPageToken() *string {
+	if s.Page == nil {
+		return nil
+	}
+	return s.Page.NextToken
+}
+
+func (s ListEnvironmentEventsResponse) GetItems() []*EnvironmentEvent {
+	return s.Events
+}
+
 // DeploymentQueryService
 type DeploymentQueryService struct {
 	Requester
@@ -765,7 +765,7 @@ type GetDeploymentResponse struct {
 type ListDeploymentEventsRequest struct {
 	Page         *list.PageRequest  `json:"page,omitempty"`
 	Query        *list.QueryRequest `json:"query,omitempty"`
-	DeploymentId string             `json:"-" path:"deploymentId"`
+	DeploymentId string             `path:"deploymentId" json:"-"`
 }
 
 func (s *ListDeploymentEventsRequest) SetPageToken(pageToken string) {
@@ -822,34 +822,52 @@ func (s ListDeploymentsResponse) GetItems() []*DeploymentState {
 	return s.Deployments
 }
 
-// S3Template Proto: S3Template
-type S3Template struct {
-	Bucket string `json:"bucket,omitempty"`
-	Key    string `json:"key,omitempty"`
-	Region string `json:"region,omitempty"`
+// CFChangesetOutput Proto: CFChangesetOutput
+type CFChangesetOutput struct {
+	Lifecycle string `json:"lifecycle,omitempty"`
 }
 
-// EnvironmentEventType_Configured Proto: EnvironmentEventType_Configured
-type EnvironmentEventType_Configured struct {
-	Config *environment.Environment `json:"config,omitempty"`
+// ClusterKeys Proto: ClusterKeys
+type ClusterKeys struct {
+	ClusterId string `json:"clusterId,omitempty"`
 }
 
-// StepStatus Proto Enum: o5.aws.deployer.v1.StepStatus
-type StepStatus string
+// KeyValue Proto: KeyValue
+type KeyValue struct {
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
+}
 
-const (
-	StepStatus_UNSPECIFIED StepStatus = "UNSPECIFIED"
-	StepStatus_BLOCKED     StepStatus = "BLOCKED"
-	StepStatus_READY       StepStatus = "READY"
-	StepStatus_ACTIVE      StepStatus = "ACTIVE"
-	StepStatus_DONE        StepStatus = "DONE"
-	StepStatus_FAILED      StepStatus = "FAILED"
-)
+// DeploymentState Proto: DeploymentState
+type DeploymentState struct {
+	Metadata      *state.StateMetadata `json:"metadata"`
+	DeploymentId  string               `json:"deploymentId,omitempty"`
+	StackId       string               `json:"stackId,omitempty"`
+	EnvironmentId string               `json:"environmentId,omitempty"`
+	ClusterId     string               `json:"clusterId,omitempty"`
+	Status        string               `json:"status,omitempty"`
+	Data          *DeploymentStateData `json:"data,omitempty"`
+}
 
-// StepRequestType_CFScale Proto: StepRequestType_CFScale
-type StepRequestType_CFScale struct {
-	StackName    string `json:"stackName,omitempty"`
-	DesiredCount int32  `json:"desiredCount,omitempty"`
+// CloudFormationStackParameterType_DesiredCount Proto: CloudFormationStackParameterType_DesiredCount
+type CloudFormationStackParameterType_DesiredCount struct {
+}
+
+// StackEventType_Configured Proto: StackEventType_Configured
+type StackEventType_Configured struct {
+	ApplicationName string `json:"applicationName,omitempty"`
+	EnvironmentId   string `json:"environmentId,omitempty"`
+	EnvironmentName string `json:"environmentName,omitempty"`
+}
+
+// EnvironmentKeys Proto: EnvironmentKeys
+type EnvironmentKeys struct {
+	EnvironmentId string `json:"environmentId,omitempty"`
+	ClusterId     string `json:"clusterId,omitempty"`
+}
+
+// DeploymentEventType_Terminated Proto: DeploymentEventType_Terminated
+type DeploymentEventType_Terminated struct {
 }
 
 // DeploymentEventType_Error Proto: DeploymentEventType_Error
@@ -857,9 +875,493 @@ type DeploymentEventType_Error struct {
 	Error string `json:"error,omitempty"`
 }
 
+// CloudFormationStackParameter Proto: CloudFormationStackParameter
+type CloudFormationStackParameter struct {
+	Name    string                            `json:"name,omitempty"`
+	Value   string                            `json:"value,omitempty"`
+	Resolve *CloudFormationStackParameterType `json:"resolve,omitempty"`
+}
+
+// StackKeys Proto: StackKeys
+type StackKeys struct {
+	StackId       string `json:"stackId,omitempty"`
+	EnvironmentId string `json:"environmentId,omitempty"`
+	ClusterId     string `json:"clusterId,omitempty"`
+}
+
+// StackEventType_DeploymentCompleted Proto: StackEventType_DeploymentCompleted
+type StackEventType_DeploymentCompleted struct {
+	Deployment *StackDeployment `json:"deployment,omitempty"`
+}
+
+// DeploymentFlags Proto: DeploymentFlags
+type DeploymentFlags struct {
+	QuickMode         bool `json:"quickMode,omitempty"`
+	RotateCredentials bool `json:"rotateCredentials,omitempty"`
+	CancelUpdates     bool `json:"cancelUpdates,omitempty"`
+	DbOnly            bool `json:"dbOnly,omitempty"`
+	InfraOnly         bool `json:"infraOnly,omitempty"`
+	ImportResources   bool `json:"importResources,omitempty"`
+}
+
+// EnvironmentStatus Proto Enum: o5.aws.deployer.v1.EnvironmentStatus
+type EnvironmentStatus string
+
+const (
+	EnvironmentStatus_UNSPECIFIED EnvironmentStatus = "UNSPECIFIED"
+	EnvironmentStatus_ACTIVE      EnvironmentStatus = "ACTIVE"
+)
+
+// ClusterEventType_Override Proto: ClusterEventType_Override
+type ClusterEventType_Override struct {
+	Overrides []*ParameterOverride `json:"overrides,omitempty"`
+}
+
+// StackStateData Proto: StackStateData
+type StackStateData struct {
+	CurrentDeployment *StackDeployment   `json:"currentDeployment,omitempty"`
+	StackName         string             `json:"stackName,omitempty"`
+	ApplicationName   string             `json:"applicationName,omitempty"`
+	EnvironmentName   string             `json:"environmentName,omitempty"`
+	EnvironmentId     string             `json:"environmentId,omitempty"`
+	QueuedDeployments []*StackDeployment `json:"queuedDeployments,omitempty"`
+}
+
+// StackEvent Proto: StackEvent
+type StackEvent struct {
+	Metadata      *state.EventMetadata `json:"metadata"`
+	StackId       string               `json:"stackId,omitempty"`
+	EnvironmentId string               `json:"environmentId,omitempty"`
+	ClusterId     string               `json:"clusterId,omitempty"`
+	Event         *StackEventType      `json:"event"`
+}
+
+// StepRequestType_CFScale Proto: StepRequestType_CFScale
+type StepRequestType_CFScale struct {
+	StackName    string `json:"stackName,omitempty"`
+	DesiredCount int32  `json:"desiredCount,omitempty"`
+}
+
+// TriggerSource_GithubSource Proto: TriggerSource_GithubSource
+type TriggerSource_GithubSource struct {
+	Owner  string `json:"owner"`
+	Repo   string `json:"repo"`
+	Branch string `json:"branch,omitempty"`
+	Tag    string `json:"tag,omitempty"`
+	Commit string `json:"commit,omitempty"`
+}
+
+// DeploymentEventType_RunStep Proto: DeploymentEventType_RunStep
+type DeploymentEventType_RunStep struct {
+	StepId string `json:"stepId,omitempty"`
+}
+
+// DeploymentKeys Proto: DeploymentKeys
+type DeploymentKeys struct {
+	DeploymentId  string `json:"deploymentId,omitempty"`
+	StackId       string `json:"stackId,omitempty"`
+	EnvironmentId string `json:"environmentId,omitempty"`
+	ClusterId     string `json:"clusterId,omitempty"`
+}
+
+// StepRequestType_PGMigrate Proto: StepRequestType_PGMigrate
+type StepRequestType_PGMigrate struct {
+	Spec              *PostgresSpec `json:"spec,omitempty"`
+	InfraOutputStepId string        `json:"infraOutputStepId,omitempty"`
+	EcsClusterName    string        `json:"ecsClusterName,omitempty"`
+}
+
+// PostgresSpec Proto: PostgresSpec
+type PostgresSpec struct {
+	DbName                  string   `json:"dbName,omitempty"`
+	DbExtensions            []string `json:"dbExtensions,omitempty"`
+	RootSecretName          string   `json:"rootSecretName,omitempty"`
+	MigrationTaskOutputName *string  `json:"migrationTaskOutputName,omitempty"`
+	SecretOutputName        string   `json:"secretOutputName,omitempty"`
+}
+
+// StepOutputType Proto Oneof: o5.aws.deployer.v1.StepOutputType
+type StepOutputType struct {
+	J5TypeKey    string                       `json:"!type,omitempty"`
+	CfStatus     *StepOutputType_CFStatus     `json:"cfStatus,omitempty"`
+	CfPlanStatus *StepOutputType_CFPlanStatus `json:"cfPlanStatus,omitempty"`
+}
+
+func (s StepOutputType) OneofKey() string {
+	if s.CfStatus != nil {
+		return "cfStatus"
+	}
+	if s.CfPlanStatus != nil {
+		return "cfPlanStatus"
+	}
+	return ""
+}
+
+func (s StepOutputType) Type() interface{} {
+	if s.CfStatus != nil {
+		return s.CfStatus
+	}
+	if s.CfPlanStatus != nil {
+		return s.CfPlanStatus
+	}
+	return nil
+}
+
+// StepRequestType_CFUpdate Proto: StepRequestType_CFUpdate
+type StepRequestType_CFUpdate struct {
+	Spec   *CFStackInput  `json:"spec,omitempty"`
+	Output *CFStackOutput `json:"output,omitempty"`
+}
+
+// StepRequestType_PGUpsert Proto: StepRequestType_PGUpsert
+type StepRequestType_PGUpsert struct {
+	Spec              *PostgresSpec `json:"spec,omitempty"`
+	InfraOutputStepId string        `json:"infraOutputStepId,omitempty"`
+	RotateCredentials bool          `json:"rotateCredentials,omitempty"`
+}
+
+// DeploymentEvent Proto: DeploymentEvent
+type DeploymentEvent struct {
+	Metadata *state.EventMetadata `json:"metadata"`
+	Keys     *DeploymentKeys      `json:"keys"`
+	Event    *DeploymentEventType `json:"event"`
+}
+
+// DeploymentSpec Proto: DeploymentSpec
+type DeploymentSpec struct {
+	AppName         string                          `json:"appName,omitempty"`
+	Version         string                          `json:"version,omitempty"`
+	EnvironmentName string                          `json:"environmentName,omitempty"`
+	EnvironmentId   string                          `json:"environmentId,omitempty"`
+	Template        *S3Template                     `json:"template,omitempty"`
+	EcsCluster      string                          `json:"ecsCluster,omitempty"`
+	CfStackName     string                          `json:"cfStackName,omitempty"`
+	Flags           *DeploymentFlags                `json:"flags,omitempty"`
+	Databases       []*PostgresSpec                 `json:"databases,omitempty"`
+	Parameters      []*CloudFormationStackParameter `json:"parameters,omitempty"`
+	SnsTopics       []string                        `json:"snsTopics,omitempty"`
+}
+
+// StepRequestType_PGCleanup Proto: StepRequestType_PGCleanup
+type StepRequestType_PGCleanup struct {
+	Spec *PostgresSpec `json:"spec,omitempty"`
+}
+
+// DeploymentEventType_StepResult Proto: DeploymentEventType_StepResult
+type DeploymentEventType_StepResult struct {
+	StepId string          `json:"stepId,omitempty"`
+	Status string          `json:"status,omitempty"`
+	Output *StepOutputType `json:"output,omitempty"`
+	Error  *string         `json:"error,omitempty"`
+}
+
+// S3Template Proto: S3Template
+type S3Template struct {
+	Bucket string `json:"bucket,omitempty"`
+	Key    string `json:"key,omitempty"`
+	Region string `json:"region,omitempty"`
+}
+
+// StepRequestType Proto Oneof: o5.aws.deployer.v1.StepRequestType
+type StepRequestType struct {
+	J5TypeKey  string                      `json:"!type,omitempty"`
+	EvalJoin   *StepRequestType_EvalJoin   `json:"evalJoin,omitempty"`
+	CfCreate   *StepRequestType_CFCreate   `json:"cfCreate,omitempty"`
+	CfPlan     *StepRequestType_CFPlan     `json:"cfPlan,omitempty"`
+	CfUpdate   *StepRequestType_CFUpdate   `json:"cfUpdate,omitempty"`
+	CfScale    *StepRequestType_CFScale    `json:"cfScale,omitempty"`
+	PgUpsert   *StepRequestType_PGUpsert   `json:"pgUpsert,omitempty"`
+	PgEvaluate *StepRequestType_PGEvaluate `json:"pgEvaluate,omitempty"`
+	PgCleanup  *StepRequestType_PGCleanup  `json:"pgCleanup,omitempty"`
+	PgMigrate  *StepRequestType_PGMigrate  `json:"pgMigrate,omitempty"`
+}
+
+func (s StepRequestType) OneofKey() string {
+	if s.EvalJoin != nil {
+		return "evalJoin"
+	}
+	if s.CfCreate != nil {
+		return "cfCreate"
+	}
+	if s.CfPlan != nil {
+		return "cfPlan"
+	}
+	if s.CfUpdate != nil {
+		return "cfUpdate"
+	}
+	if s.CfScale != nil {
+		return "cfScale"
+	}
+	if s.PgUpsert != nil {
+		return "pgUpsert"
+	}
+	if s.PgEvaluate != nil {
+		return "pgEvaluate"
+	}
+	if s.PgCleanup != nil {
+		return "pgCleanup"
+	}
+	if s.PgMigrate != nil {
+		return "pgMigrate"
+	}
+	return ""
+}
+
+func (s StepRequestType) Type() interface{} {
+	if s.EvalJoin != nil {
+		return s.EvalJoin
+	}
+	if s.CfCreate != nil {
+		return s.CfCreate
+	}
+	if s.CfPlan != nil {
+		return s.CfPlan
+	}
+	if s.CfUpdate != nil {
+		return s.CfUpdate
+	}
+	if s.CfScale != nil {
+		return s.CfScale
+	}
+	if s.PgUpsert != nil {
+		return s.PgUpsert
+	}
+	if s.PgEvaluate != nil {
+		return s.PgEvaluate
+	}
+	if s.PgCleanup != nil {
+		return s.PgCleanup
+	}
+	if s.PgMigrate != nil {
+		return s.PgMigrate
+	}
+	return nil
+}
+
+// ClusterEventType Proto Oneof: o5.aws.deployer.v1.ClusterEventType
+type ClusterEventType struct {
+	J5TypeKey  string                       `json:"!type,omitempty"`
+	Configured *ClusterEventType_Configured `json:"configured,omitempty"`
+	Override   *ClusterEventType_Override   `json:"override,omitempty"`
+}
+
+func (s ClusterEventType) OneofKey() string {
+	if s.Configured != nil {
+		return "configured"
+	}
+	if s.Override != nil {
+		return "override"
+	}
+	return ""
+}
+
+func (s ClusterEventType) Type() interface{} {
+	if s.Configured != nil {
+		return s.Configured
+	}
+	if s.Override != nil {
+		return s.Override
+	}
+	return nil
+}
+
+// StepRequestType_PGEvaluate Proto: StepRequestType_PGEvaluate
+type StepRequestType_PGEvaluate struct {
+	DbName string `json:"dbName,omitempty"`
+}
+
+// ClusterEventType_Configured Proto: ClusterEventType_Configured
+type ClusterEventType_Configured struct {
+	Config *environment.Cluster `json:"config,omitempty"`
+}
+
+// StepRequestType_EvalJoin Proto: StepRequestType_EvalJoin
+type StepRequestType_EvalJoin struct {
+}
+
+// ParameterOverride Proto: ParameterOverride
+type ParameterOverride struct {
+	Key   string  `json:"key"`
+	Value *string `json:"value,omitempty"`
+}
+
+// StackEventType_RunDeployment Proto: StackEventType_RunDeployment
+type StackEventType_RunDeployment struct {
+	DeploymentId string `json:"deploymentId,omitempty"`
+}
+
+// StepRequestType_CFCreate Proto: StepRequestType_CFCreate
+type StepRequestType_CFCreate struct {
+	Spec       *CFStackInput  `json:"spec,omitempty"`
+	Output     *CFStackOutput `json:"output,omitempty"`
+	EmptyStack bool           `json:"emptyStack,omitempty"`
+}
+
+// StepRequestType_CFPlan Proto: StepRequestType_CFPlan
+type StepRequestType_CFPlan struct {
+	Spec            *CFStackInput `json:"spec,omitempty"`
+	ImportResources bool          `json:"importResources,omitempty"`
+}
+
+// CFLifecycle Proto Enum: o5.aws.deployer.v1.CFLifecycle
+type CFLifecycle string
+
+const (
+	CFLifecycle_UNSPECIFIED   CFLifecycle = "UNSPECIFIED"
+	CFLifecycle_PROGRESS      CFLifecycle = "PROGRESS"
+	CFLifecycle_COMPLETE      CFLifecycle = "COMPLETE"
+	CFLifecycle_ROLLING_BACK  CFLifecycle = "ROLLING_BACK"
+	CFLifecycle_CREATE_FAILED CFLifecycle = "CREATE_FAILED"
+	CFLifecycle_TERMINAL      CFLifecycle = "TERMINAL"
+	CFLifecycle_ROLLED_BACK   CFLifecycle = "ROLLED_BACK"
+	CFLifecycle_MISSING       CFLifecycle = "MISSING"
+)
+
+// ClusterStatus Proto Enum: o5.aws.deployer.v1.ClusterStatus
+type ClusterStatus string
+
+const (
+	ClusterStatus_UNSPECIFIED ClusterStatus = "UNSPECIFIED"
+	ClusterStatus_ACTIVE      ClusterStatus = "ACTIVE"
+)
+
+// DeploymentStateData Proto: DeploymentStateData
+type DeploymentStateData struct {
+	Request *messaging.RequestMetadata `json:"request,omitempty"`
+	Spec    *DeploymentSpec            `json:"spec,omitempty"`
+	Steps   []*DeploymentStep          `json:"steps,omitempty"`
+}
+
+// StackEventType_DeploymentFailed Proto: StackEventType_DeploymentFailed
+type StackEventType_DeploymentFailed struct {
+	Deployment *StackDeployment `json:"deployment,omitempty"`
+	Error      string           `json:"error,omitempty"`
+}
+
+// CloudFormationStackParameterType Proto Oneof: o5.aws.deployer.v1.CloudFormationStackParameterType
+type CloudFormationStackParameterType struct {
+	J5TypeKey    string                                         `json:"!type,omitempty"`
+	RulePriority *CloudFormationStackParameterType_RulePriority `json:"rulePriority,omitempty"`
+	DesiredCount *CloudFormationStackParameterType_DesiredCount `json:"desiredCount,omitempty"`
+}
+
+func (s CloudFormationStackParameterType) OneofKey() string {
+	if s.RulePriority != nil {
+		return "rulePriority"
+	}
+	if s.DesiredCount != nil {
+		return "desiredCount"
+	}
+	return ""
+}
+
+func (s CloudFormationStackParameterType) Type() interface{} {
+	if s.RulePriority != nil {
+		return s.RulePriority
+	}
+	if s.DesiredCount != nil {
+		return s.DesiredCount
+	}
+	return nil
+}
+
+// EnvironmentEventType Proto Oneof: o5.aws.deployer.v1.EnvironmentEventType
+type EnvironmentEventType struct {
+	J5TypeKey  string                           `json:"!type,omitempty"`
+	Configured *EnvironmentEventType_Configured `json:"configured,omitempty"`
+}
+
+func (s EnvironmentEventType) OneofKey() string {
+	if s.Configured != nil {
+		return "configured"
+	}
+	return ""
+}
+
+func (s EnvironmentEventType) Type() interface{} {
+	if s.Configured != nil {
+		return s.Configured
+	}
+	return nil
+}
+
+// StackEventType_DeploymentRequested Proto: StackEventType_DeploymentRequested
+type StackEventType_DeploymentRequested struct {
+	Deployment      *StackDeployment `json:"deployment,omitempty"`
+	ApplicationName string           `json:"applicationName,omitempty"`
+	EnvironmentName string           `json:"environmentName,omitempty"`
+	EnvironmentId   string           `json:"environmentId,omitempty"`
+}
+
+// TriggerSource Proto Oneof: o5.aws.deployer.v1.TriggerSource
+type TriggerSource struct {
+	J5TypeKey string                      `json:"!type,omitempty"`
+	Github    *TriggerSource_GithubSource `json:"github,omitempty"`
+	Inline    *TriggerSource_InlineSource `json:"inline,omitempty"`
+}
+
+func (s TriggerSource) OneofKey() string {
+	if s.Github != nil {
+		return "github"
+	}
+	if s.Inline != nil {
+		return "inline"
+	}
+	return ""
+}
+
+func (s TriggerSource) Type() interface{} {
+	if s.Github != nil {
+		return s.Github
+	}
+	if s.Inline != nil {
+		return s.Inline
+	}
+	return nil
+}
+
+// DeploymentEventType_StackWaitFailure Proto: DeploymentEventType_StackWaitFailure
+type DeploymentEventType_StackWaitFailure struct {
+	Error string `json:"error,omitempty"`
+}
+
+// ClusterEvent Proto: ClusterEvent
+type ClusterEvent struct {
+	Metadata  *state.EventMetadata `json:"metadata"`
+	ClusterId string               `json:"clusterId,omitempty"`
+	Event     *ClusterEventType    `json:"event"`
+}
+
+// StackStatus Proto Enum: o5.aws.deployer.v1.StackStatus
+type StackStatus string
+
+const (
+	StackStatus_UNSPECIFIED StackStatus = "UNSPECIFIED"
+	StackStatus_MIGRATING   StackStatus = "MIGRATING"
+	StackStatus_AVAILABLE   StackStatus = "AVAILABLE"
+)
+
+// DeploymentEventType_Done Proto: DeploymentEventType_Done
+type DeploymentEventType_Done struct {
+}
+
+// DeploymentEventType_StackWait Proto: DeploymentEventType_StackWait
+type DeploymentEventType_StackWait struct {
+}
+
+// DeploymentEventType_Triggered Proto: DeploymentEventType_Triggered
+type DeploymentEventType_Triggered struct {
+}
+
 // StepOutputType_CFPlanStatus Proto: StepOutputType_CFPlanStatus
 type StepOutputType_CFPlanStatus struct {
 	Output *CFChangesetOutput `json:"output,omitempty"`
+}
+
+// DeploymentEventType_Created Proto: DeploymentEventType_Created
+type DeploymentEventType_Created struct {
+	Request *messaging.RequestMetadata `json:"request,omitempty"`
+	Spec    *DeploymentSpec            `json:"spec,omitempty"`
 }
 
 // DeploymentEventType Proto Oneof: o5.aws.deployer.v1.DeploymentEventType
@@ -952,176 +1454,6 @@ func (s DeploymentEventType) Type() interface{} {
 	return nil
 }
 
-// StepRequestType_CFPlan Proto: StepRequestType_CFPlan
-type StepRequestType_CFPlan struct {
-	Spec            *CFStackInput `json:"spec,omitempty"`
-	ImportResources bool          `json:"importResources,omitempty"`
-}
-
-// DeploymentEventType_RunSteps Proto: DeploymentEventType_RunSteps
-type DeploymentEventType_RunSteps struct {
-	Steps []*DeploymentStep `json:"steps,omitempty"`
-}
-
-// DeploymentEventType_Triggered Proto: DeploymentEventType_Triggered
-type DeploymentEventType_Triggered struct {
-}
-
-// CloudFormationStackParameter Proto: CloudFormationStackParameter
-type CloudFormationStackParameter struct {
-	Name    string                            `json:"name,omitempty"`
-	Value   string                            `json:"value,omitempty"`
-	Resolve *CloudFormationStackParameterType `json:"resolve,omitempty"`
-}
-
-// ClusterEventType_Override Proto: ClusterEventType_Override
-type ClusterEventType_Override struct {
-	Overrides []*ParameterOverride `json:"overrides,omitempty"`
-}
-
-// StackEventType_RunDeployment Proto: StackEventType_RunDeployment
-type StackEventType_RunDeployment struct {
-	DeploymentId string `json:"deploymentId,omitempty"`
-}
-
-// PostgresSpec Proto: PostgresSpec
-type PostgresSpec struct {
-	DbName                  string   `json:"dbName,omitempty"`
-	DbExtensions            []string `json:"dbExtensions,omitempty"`
-	RootSecretName          string   `json:"rootSecretName,omitempty"`
-	MigrationTaskOutputName *string  `json:"migrationTaskOutputName,omitempty"`
-	SecretOutputName        string   `json:"secretOutputName,omitempty"`
-}
-
-// CloudFormationStackParameterType_RulePriority Proto: CloudFormationStackParameterType_RulePriority
-type CloudFormationStackParameterType_RulePriority struct {
-	RouteGroup string `json:"routeGroup,omitempty"`
-}
-
-// StepRequestType Proto Oneof: o5.aws.deployer.v1.StepRequestType
-type StepRequestType struct {
-	J5TypeKey  string                      `json:"!type,omitempty"`
-	EvalJoin   *StepRequestType_EvalJoin   `json:"evalJoin,omitempty"`
-	CfCreate   *StepRequestType_CFCreate   `json:"cfCreate,omitempty"`
-	CfPlan     *StepRequestType_CFPlan     `json:"cfPlan,omitempty"`
-	CfUpdate   *StepRequestType_CFUpdate   `json:"cfUpdate,omitempty"`
-	CfScale    *StepRequestType_CFScale    `json:"cfScale,omitempty"`
-	PgUpsert   *StepRequestType_PGUpsert   `json:"pgUpsert,omitempty"`
-	PgEvaluate *StepRequestType_PGEvaluate `json:"pgEvaluate,omitempty"`
-	PgCleanup  *StepRequestType_PGCleanup  `json:"pgCleanup,omitempty"`
-	PgMigrate  *StepRequestType_PGMigrate  `json:"pgMigrate,omitempty"`
-}
-
-func (s StepRequestType) OneofKey() string {
-	if s.EvalJoin != nil {
-		return "evalJoin"
-	}
-	if s.CfCreate != nil {
-		return "cfCreate"
-	}
-	if s.CfPlan != nil {
-		return "cfPlan"
-	}
-	if s.CfUpdate != nil {
-		return "cfUpdate"
-	}
-	if s.CfScale != nil {
-		return "cfScale"
-	}
-	if s.PgUpsert != nil {
-		return "pgUpsert"
-	}
-	if s.PgEvaluate != nil {
-		return "pgEvaluate"
-	}
-	if s.PgCleanup != nil {
-		return "pgCleanup"
-	}
-	if s.PgMigrate != nil {
-		return "pgMigrate"
-	}
-	return ""
-}
-
-func (s StepRequestType) Type() interface{} {
-	if s.EvalJoin != nil {
-		return s.EvalJoin
-	}
-	if s.CfCreate != nil {
-		return s.CfCreate
-	}
-	if s.CfPlan != nil {
-		return s.CfPlan
-	}
-	if s.CfUpdate != nil {
-		return s.CfUpdate
-	}
-	if s.CfScale != nil {
-		return s.CfScale
-	}
-	if s.PgUpsert != nil {
-		return s.PgUpsert
-	}
-	if s.PgEvaluate != nil {
-		return s.PgEvaluate
-	}
-	if s.PgCleanup != nil {
-		return s.PgCleanup
-	}
-	if s.PgMigrate != nil {
-		return s.PgMigrate
-	}
-	return nil
-}
-
-// StepRequestType_PGEvaluate Proto: StepRequestType_PGEvaluate
-type StepRequestType_PGEvaluate struct {
-	DbName string `json:"dbName,omitempty"`
-}
-
-// DeploymentEventType_RunStep Proto: DeploymentEventType_RunStep
-type DeploymentEventType_RunStep struct {
-	StepId string `json:"stepId,omitempty"`
-}
-
-// StepRequestType_EvalJoin Proto: StepRequestType_EvalJoin
-type StepRequestType_EvalJoin struct {
-}
-
-// TriggerSource Proto Oneof: o5.aws.deployer.v1.TriggerSource
-type TriggerSource struct {
-	J5TypeKey string                      `json:"!type,omitempty"`
-	Github    *TriggerSource_GithubSource `json:"github,omitempty"`
-	Inline    *TriggerSource_InlineSource `json:"inline,omitempty"`
-}
-
-func (s TriggerSource) OneofKey() string {
-	if s.Github != nil {
-		return "github"
-	}
-	if s.Inline != nil {
-		return "inline"
-	}
-	return ""
-}
-
-func (s TriggerSource) Type() interface{} {
-	if s.Github != nil {
-		return s.Github
-	}
-	if s.Inline != nil {
-		return s.Inline
-	}
-	return nil
-}
-
-// StackKeys Proto: StackKeys
-type StackKeys struct {
-	StackId       string `json:"stackId,omitempty"`
-	EnvironmentId string `json:"environmentId,omitempty"`
-	ClusterId     string `json:"clusterId,omitempty"`
-}
-
 // CFChangesetLifecycle Proto Enum: o5.aws.deployer.v1.CFChangesetLifecycle
 type CFChangesetLifecycle string
 
@@ -1133,205 +1465,9 @@ const (
 	CFChangesetLifecycle_TERMINAL    CFChangesetLifecycle = "TERMINAL"
 )
 
-// ClusterEventType Proto Oneof: o5.aws.deployer.v1.ClusterEventType
-type ClusterEventType struct {
-	J5TypeKey  string                       `json:"!type,omitempty"`
-	Configured *ClusterEventType_Configured `json:"configured,omitempty"`
-	Override   *ClusterEventType_Override   `json:"override,omitempty"`
-}
-
-func (s ClusterEventType) OneofKey() string {
-	if s.Configured != nil {
-		return "configured"
-	}
-	if s.Override != nil {
-		return "override"
-	}
-	return ""
-}
-
-func (s ClusterEventType) Type() interface{} {
-	if s.Configured != nil {
-		return s.Configured
-	}
-	if s.Override != nil {
-		return s.Override
-	}
-	return nil
-}
-
-// ClusterEventType_Configured Proto: ClusterEventType_Configured
-type ClusterEventType_Configured struct {
-	Config *environment.Cluster `json:"config,omitempty"`
-}
-
-// DeploymentEventType_Created Proto: DeploymentEventType_Created
-type DeploymentEventType_Created struct {
-	Request *messaging.RequestMetadata `json:"request,omitempty"`
-	Spec    *DeploymentSpec            `json:"spec,omitempty"`
-}
-
-// CloudFormationStackParameterType_DesiredCount Proto: CloudFormationStackParameterType_DesiredCount
-type CloudFormationStackParameterType_DesiredCount struct {
-}
-
-// EnvironmentStatus Proto Enum: o5.aws.deployer.v1.EnvironmentStatus
-type EnvironmentStatus string
-
-const (
-	EnvironmentStatus_UNSPECIFIED EnvironmentStatus = "UNSPECIFIED"
-	EnvironmentStatus_ACTIVE      EnvironmentStatus = "ACTIVE"
-)
-
-// DeploymentStateData Proto: DeploymentStateData
-type DeploymentStateData struct {
-	Request *messaging.RequestMetadata `json:"request,omitempty"`
-	Spec    *DeploymentSpec            `json:"spec,omitempty"`
-	Steps   []*DeploymentStep          `json:"steps,omitempty"`
-}
-
-// CFChangesetOutput Proto: CFChangesetOutput
-type CFChangesetOutput struct {
-	Lifecycle string `json:"lifecycle,omitempty"`
-}
-
-// StepRequestType_PGCleanup Proto: StepRequestType_PGCleanup
-type StepRequestType_PGCleanup struct {
-	Spec *PostgresSpec `json:"spec,omitempty"`
-}
-
-// DeploymentSpec Proto: DeploymentSpec
-type DeploymentSpec struct {
-	AppName         string                          `json:"appName,omitempty"`
-	Version         string                          `json:"version,omitempty"`
-	EnvironmentName string                          `json:"environmentName,omitempty"`
-	EnvironmentId   string                          `json:"environmentId,omitempty"`
-	Template        *S3Template                     `json:"template,omitempty"`
-	EcsCluster      string                          `json:"ecsCluster,omitempty"`
-	CfStackName     string                          `json:"cfStackName,omitempty"`
-	Flags           *DeploymentFlags                `json:"flags,omitempty"`
-	Databases       []*PostgresSpec                 `json:"databases,omitempty"`
-	Parameters      []*CloudFormationStackParameter `json:"parameters,omitempty"`
-	SnsTopics       []string                        `json:"snsTopics,omitempty"`
-}
-
-// StepOutputType Proto Oneof: o5.aws.deployer.v1.StepOutputType
-type StepOutputType struct {
-	J5TypeKey    string                       `json:"!type,omitempty"`
-	CfStatus     *StepOutputType_CFStatus     `json:"cfStatus,omitempty"`
-	CfPlanStatus *StepOutputType_CFPlanStatus `json:"cfPlanStatus,omitempty"`
-}
-
-func (s StepOutputType) OneofKey() string {
-	if s.CfStatus != nil {
-		return "cfStatus"
-	}
-	if s.CfPlanStatus != nil {
-		return "cfPlanStatus"
-	}
-	return ""
-}
-
-func (s StepOutputType) Type() interface{} {
-	if s.CfStatus != nil {
-		return s.CfStatus
-	}
-	if s.CfPlanStatus != nil {
-		return s.CfPlanStatus
-	}
-	return nil
-}
-
-// StackEventType_DeploymentCompleted Proto: StackEventType_DeploymentCompleted
-type StackEventType_DeploymentCompleted struct {
-	Deployment *StackDeployment `json:"deployment,omitempty"`
-}
-
-// CFStackOutput Proto: CFStackOutput
-type CFStackOutput struct {
-	Lifecycle string      `json:"lifecycle,omitempty"`
-	Outputs   []*KeyValue `json:"outputs,omitempty"`
-}
-
-// CloudFormationStackParameterType Proto Oneof: o5.aws.deployer.v1.CloudFormationStackParameterType
-type CloudFormationStackParameterType struct {
-	J5TypeKey    string                                         `json:"!type,omitempty"`
-	RulePriority *CloudFormationStackParameterType_RulePriority `json:"rulePriority,omitempty"`
-	DesiredCount *CloudFormationStackParameterType_DesiredCount `json:"desiredCount,omitempty"`
-}
-
-func (s CloudFormationStackParameterType) OneofKey() string {
-	if s.RulePriority != nil {
-		return "rulePriority"
-	}
-	if s.DesiredCount != nil {
-		return "desiredCount"
-	}
-	return ""
-}
-
-func (s CloudFormationStackParameterType) Type() interface{} {
-	if s.RulePriority != nil {
-		return s.RulePriority
-	}
-	if s.DesiredCount != nil {
-		return s.DesiredCount
-	}
-	return nil
-}
-
-// EnvironmentEvent Proto: EnvironmentEvent
-type EnvironmentEvent struct {
-	Metadata      *state.EventMetadata  `json:"metadata"`
-	EnvironmentId string                `json:"environmentId,omitempty"`
-	ClusterId     string                `json:"clusterId,omitempty"`
-	Event         *EnvironmentEventType `json:"event"`
-}
-
-// CFLifecycle Proto Enum: o5.aws.deployer.v1.CFLifecycle
-type CFLifecycle string
-
-const (
-	CFLifecycle_UNSPECIFIED   CFLifecycle = "UNSPECIFIED"
-	CFLifecycle_PROGRESS      CFLifecycle = "PROGRESS"
-	CFLifecycle_COMPLETE      CFLifecycle = "COMPLETE"
-	CFLifecycle_ROLLING_BACK  CFLifecycle = "ROLLING_BACK"
-	CFLifecycle_CREATE_FAILED CFLifecycle = "CREATE_FAILED"
-	CFLifecycle_TERMINAL      CFLifecycle = "TERMINAL"
-	CFLifecycle_ROLLED_BACK   CFLifecycle = "ROLLED_BACK"
-	CFLifecycle_MISSING       CFLifecycle = "MISSING"
-)
-
-// EnvironmentEventType Proto Oneof: o5.aws.deployer.v1.EnvironmentEventType
-type EnvironmentEventType struct {
-	J5TypeKey  string                           `json:"!type,omitempty"`
-	Configured *EnvironmentEventType_Configured `json:"configured,omitempty"`
-}
-
-func (s EnvironmentEventType) OneofKey() string {
-	if s.Configured != nil {
-		return "configured"
-	}
-	return ""
-}
-
-func (s EnvironmentEventType) Type() interface{} {
-	if s.Configured != nil {
-		return s.Configured
-	}
-	return nil
-}
-
-// ClusterEvent Proto: ClusterEvent
-type ClusterEvent struct {
-	Metadata  *state.EventMetadata `json:"metadata"`
-	ClusterId string               `json:"clusterId,omitempty"`
-	Event     *ClusterEventType    `json:"event"`
-}
-
-// DeploymentEventType_StackWaitFailure Proto: DeploymentEventType_StackWaitFailure
-type DeploymentEventType_StackWaitFailure struct {
-	Error string `json:"error,omitempty"`
+// DeploymentEventType_StackAvailable Proto: DeploymentEventType_StackAvailable
+type DeploymentEventType_StackAvailable struct {
+	StackOutput *CFStackOutput `json:"stackOutput,omitempty"`
 }
 
 // StackState Proto: StackState
@@ -1344,90 +1480,12 @@ type StackState struct {
 	Data          *StackStateData      `json:"data,omitempty"`
 }
 
-// StepRequestType_CFUpdate Proto: StepRequestType_CFUpdate
-type StepRequestType_CFUpdate struct {
-	Spec   *CFStackInput  `json:"spec,omitempty"`
-	Output *CFStackOutput `json:"output,omitempty"`
-}
-
-// DeploymentState Proto: DeploymentState
-type DeploymentState struct {
-	Metadata      *state.StateMetadata `json:"metadata"`
-	DeploymentId  string               `json:"deploymentId,omitempty"`
-	StackId       string               `json:"stackId,omitempty"`
-	EnvironmentId string               `json:"environmentId,omitempty"`
-	ClusterId     string               `json:"clusterId,omitempty"`
-	Status        string               `json:"status,omitempty"`
-	Data          *DeploymentStateData `json:"data,omitempty"`
-}
-
-// TriggerSource_InlineSource Proto: TriggerSource_InlineSource
-type TriggerSource_InlineSource struct {
-	Version     string                   `json:"version"`
-	Application *application.Application `json:"application"`
-}
-
-// StepRequestType_PGUpsert Proto: StepRequestType_PGUpsert
-type StepRequestType_PGUpsert struct {
-	Spec              *PostgresSpec `json:"spec,omitempty"`
-	InfraOutputStepId string        `json:"infraOutputStepId,omitempty"`
-	RotateCredentials bool          `json:"rotateCredentials,omitempty"`
-}
-
-// DeploymentStatus Proto Enum: o5.aws.deployer.v1.DeploymentStatus
-type DeploymentStatus string
-
-const (
-	DeploymentStatus_UNSPECIFIED DeploymentStatus = "UNSPECIFIED"
-	DeploymentStatus_QUEUED      DeploymentStatus = "QUEUED"
-	DeploymentStatus_TRIGGERED   DeploymentStatus = "TRIGGERED"
-	DeploymentStatus_WAITING     DeploymentStatus = "WAITING"
-	DeploymentStatus_AVAILABLE   DeploymentStatus = "AVAILABLE"
-	DeploymentStatus_RUNNING     DeploymentStatus = "RUNNING"
-	DeploymentStatus_DONE        DeploymentStatus = "DONE"
-	DeploymentStatus_FAILED      DeploymentStatus = "FAILED"
-	DeploymentStatus_TERMINATED  DeploymentStatus = "TERMINATED"
-)
-
-// DeploymentEventType_StepResult Proto: DeploymentEventType_StepResult
-type DeploymentEventType_StepResult struct {
-	StepId string          `json:"stepId,omitempty"`
-	Status string          `json:"status,omitempty"`
-	Output *StepOutputType `json:"output,omitempty"`
-	Error  *string         `json:"error,omitempty"`
-}
-
-// DeploymentEventType_Done Proto: DeploymentEventType_Done
-type DeploymentEventType_Done struct {
-}
-
-// ClusterStatus Proto Enum: o5.aws.deployer.v1.ClusterStatus
-type ClusterStatus string
-
-const (
-	ClusterStatus_UNSPECIFIED ClusterStatus = "UNSPECIFIED"
-	ClusterStatus_ACTIVE      ClusterStatus = "ACTIVE"
-)
-
-// StackEvent Proto: StackEvent
-type StackEvent struct {
-	Metadata      *state.EventMetadata `json:"metadata"`
-	StackId       string               `json:"stackId,omitempty"`
-	EnvironmentId string               `json:"environmentId,omitempty"`
-	ClusterId     string               `json:"clusterId,omitempty"`
-	Event         *StackEventType      `json:"event"`
-}
-
-// StackEventType_DeploymentRequested Proto: StackEventType_DeploymentRequested
-type StackEventType_DeploymentRequested struct {
-	Deployment      *StackDeployment `json:"deployment,omitempty"`
-	ApplicationName string           `json:"applicationName,omitempty"`
-	EnvironmentName string           `json:"environmentName,omitempty"`
-	EnvironmentId   string           `json:"environmentId,omitempty"`
-}
-
-// DeploymentEventType_Terminated Proto: DeploymentEventType_Terminated
-type DeploymentEventType_Terminated struct {
+// ClusterState Proto: ClusterState
+type ClusterState struct {
+	Metadata  *state.StateMetadata `json:"metadata"`
+	ClusterId string               `json:"clusterId,omitempty"`
+	Status    string               `json:"status,omitempty"`
+	Data      *ClusterStateData    `json:"data,omitempty"`
 }
 
 // CFStackInput Proto: CFStackInput
@@ -1441,29 +1499,13 @@ type CFStackInput struct {
 	SnsTopics    []string                        `json:"snsTopics,omitempty"`
 }
 
-// StackEventType_DeploymentFailed Proto: StackEventType_DeploymentFailed
-type StackEventType_DeploymentFailed struct {
-	Deployment *StackDeployment `json:"deployment,omitempty"`
-	Error      string           `json:"error,omitempty"`
-}
-
-// ClusterKeys Proto: ClusterKeys
-type ClusterKeys struct {
-	ClusterId string `json:"clusterId,omitempty"`
-}
-
-// StepRequestType_PGMigrate Proto: StepRequestType_PGMigrate
-type StepRequestType_PGMigrate struct {
-	Spec              *PostgresSpec `json:"spec,omitempty"`
-	InfraOutputStepId string        `json:"infraOutputStepId,omitempty"`
-	EcsClusterName    string        `json:"ecsClusterName,omitempty"`
-}
-
-// DeploymentEvent Proto: DeploymentEvent
-type DeploymentEvent struct {
-	Metadata *state.EventMetadata `json:"metadata"`
-	Keys     *DeploymentKeys      `json:"keys"`
-	Event    *DeploymentEventType `json:"event"`
+// EnvironmentState Proto: EnvironmentState
+type EnvironmentState struct {
+	Metadata      *state.StateMetadata  `json:"metadata"`
+	EnvironmentId string                `json:"environmentId,omitempty"`
+	ClusterId     string                `json:"clusterId,omitempty"`
+	Status        string                `json:"status,omitempty"`
+	Data          *EnvironmentStateData `json:"data,omitempty"`
 }
 
 // StackEventType Proto Oneof: o5.aws.deployer.v1.StackEventType
@@ -1514,36 +1556,6 @@ func (s StackEventType) Type() interface{} {
 	return nil
 }
 
-// KeyValue Proto: KeyValue
-type KeyValue struct {
-	Name  string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
-}
-
-// EnvironmentStateData Proto: EnvironmentStateData
-type EnvironmentStateData struct {
-	Config *environment.Environment `json:"config,omitempty"`
-}
-
-// TriggerSource_GithubSource Proto: TriggerSource_GithubSource
-type TriggerSource_GithubSource struct {
-	Owner  string `json:"owner"`
-	Repo   string `json:"repo"`
-	Branch string `json:"branch,omitempty"`
-	Tag    string `json:"tag,omitempty"`
-	Commit string `json:"commit,omitempty"`
-}
-
-// DeploymentFlags Proto: DeploymentFlags
-type DeploymentFlags struct {
-	QuickMode         bool `json:"quickMode,omitempty"`
-	RotateCredentials bool `json:"rotateCredentials,omitempty"`
-	CancelUpdates     bool `json:"cancelUpdates,omitempty"`
-	DbOnly            bool `json:"dbOnly,omitempty"`
-	InfraOnly         bool `json:"infraOnly,omitempty"`
-	ImportResources   bool `json:"importResources,omitempty"`
-}
-
 // ClusterStateData Proto: ClusterStateData
 type ClusterStateData struct {
 	BaseConfig *environment.Cluster `json:"baseConfig,omitempty"`
@@ -1551,90 +1563,22 @@ type ClusterStateData struct {
 	Config     *environment.Cluster `json:"config,omitempty"`
 }
 
-// EnvironmentKeys Proto: EnvironmentKeys
-type EnvironmentKeys struct {
-	EnvironmentId string `json:"environmentId,omitempty"`
-	ClusterId     string `json:"clusterId,omitempty"`
-}
-
-// ParameterOverride Proto: ParameterOverride
-type ParameterOverride struct {
-	Key   string  `json:"key"`
-	Value *string `json:"value,omitempty"`
-}
-
-// DeploymentKeys Proto: DeploymentKeys
-type DeploymentKeys struct {
-	DeploymentId  string `json:"deploymentId,omitempty"`
-	StackId       string `json:"stackId,omitempty"`
-	EnvironmentId string `json:"environmentId,omitempty"`
-	ClusterId     string `json:"clusterId,omitempty"`
-}
-
-// DeploymentEventType_StackAvailable Proto: DeploymentEventType_StackAvailable
-type DeploymentEventType_StackAvailable struct {
-	StackOutput *CFStackOutput `json:"stackOutput,omitempty"`
-}
-
-// EnvironmentState Proto: EnvironmentState
-type EnvironmentState struct {
-	Metadata      *state.StateMetadata  `json:"metadata"`
-	EnvironmentId string                `json:"environmentId,omitempty"`
-	ClusterId     string                `json:"clusterId,omitempty"`
-	Status        string                `json:"status,omitempty"`
-	Data          *EnvironmentStateData `json:"data,omitempty"`
-}
-
-// StackStateData Proto: StackStateData
-type StackStateData struct {
-	CurrentDeployment *StackDeployment   `json:"currentDeployment,omitempty"`
-	StackName         string             `json:"stackName,omitempty"`
-	ApplicationName   string             `json:"applicationName,omitempty"`
-	EnvironmentName   string             `json:"environmentName,omitempty"`
-	EnvironmentId     string             `json:"environmentId,omitempty"`
-	QueuedDeployments []*StackDeployment `json:"queuedDeployments,omitempty"`
-}
-
-// ClusterState Proto: ClusterState
-type ClusterState struct {
-	Metadata  *state.StateMetadata `json:"metadata"`
-	ClusterId string               `json:"clusterId,omitempty"`
-	Status    string               `json:"status,omitempty"`
-	Data      *ClusterStateData    `json:"data,omitempty"`
-}
-
-// StepRequestType_CFCreate Proto: StepRequestType_CFCreate
-type StepRequestType_CFCreate struct {
-	Spec       *CFStackInput  `json:"spec,omitempty"`
-	Output     *CFStackOutput `json:"output,omitempty"`
-	EmptyStack bool           `json:"emptyStack,omitempty"`
-}
-
-// StackDeployment Proto: StackDeployment
-type StackDeployment struct {
-	DeploymentId string `json:"deploymentId,omitempty"`
-	Version      string `json:"version,omitempty"`
-}
-
-// StackStatus Proto Enum: o5.aws.deployer.v1.StackStatus
-type StackStatus string
+// StepStatus Proto Enum: o5.aws.deployer.v1.StepStatus
+type StepStatus string
 
 const (
-	StackStatus_UNSPECIFIED StackStatus = "UNSPECIFIED"
-	StackStatus_MIGRATING   StackStatus = "MIGRATING"
-	StackStatus_AVAILABLE   StackStatus = "AVAILABLE"
+	StepStatus_UNSPECIFIED StepStatus = "UNSPECIFIED"
+	StepStatus_BLOCKED     StepStatus = "BLOCKED"
+	StepStatus_READY       StepStatus = "READY"
+	StepStatus_ACTIVE      StepStatus = "ACTIVE"
+	StepStatus_DONE        StepStatus = "DONE"
+	StepStatus_FAILED      StepStatus = "FAILED"
 )
 
-// StackEventType_Configured Proto: StackEventType_Configured
-type StackEventType_Configured struct {
-	ApplicationName string `json:"applicationName,omitempty"`
-	EnvironmentId   string `json:"environmentId,omitempty"`
-	EnvironmentName string `json:"environmentName,omitempty"`
-}
-
-// StepOutputType_CFStatus Proto: StepOutputType_CFStatus
-type StepOutputType_CFStatus struct {
-	Output *CFStackOutput `json:"output,omitempty"`
+// CFStackOutput Proto: CFStackOutput
+type CFStackOutput struct {
+	Lifecycle string      `json:"lifecycle,omitempty"`
+	Outputs   []*KeyValue `json:"outputs,omitempty"`
 }
 
 // DeploymentStep Proto: DeploymentStep
@@ -1648,25 +1592,81 @@ type DeploymentStep struct {
 	DependsOn []string         `json:"dependsOn,omitempty"`
 }
 
-// DeploymentEventType_StackWait Proto: DeploymentEventType_StackWait
-type DeploymentEventType_StackWait struct {
+// DeploymentEventType_RunSteps Proto: DeploymentEventType_RunSteps
+type DeploymentEventType_RunSteps struct {
+	Steps []*DeploymentStep `json:"steps,omitempty"`
+}
+
+// DeploymentStatus Proto Enum: o5.aws.deployer.v1.DeploymentStatus
+type DeploymentStatus string
+
+const (
+	DeploymentStatus_UNSPECIFIED DeploymentStatus = "UNSPECIFIED"
+	DeploymentStatus_QUEUED      DeploymentStatus = "QUEUED"
+	DeploymentStatus_TRIGGERED   DeploymentStatus = "TRIGGERED"
+	DeploymentStatus_WAITING     DeploymentStatus = "WAITING"
+	DeploymentStatus_AVAILABLE   DeploymentStatus = "AVAILABLE"
+	DeploymentStatus_RUNNING     DeploymentStatus = "RUNNING"
+	DeploymentStatus_DONE        DeploymentStatus = "DONE"
+	DeploymentStatus_FAILED      DeploymentStatus = "FAILED"
+	DeploymentStatus_TERMINATED  DeploymentStatus = "TERMINATED"
+)
+
+// CloudFormationStackParameterType_RulePriority Proto: CloudFormationStackParameterType_RulePriority
+type CloudFormationStackParameterType_RulePriority struct {
+	RouteGroup string `json:"routeGroup,omitempty"`
+}
+
+// StackDeployment Proto: StackDeployment
+type StackDeployment struct {
+	DeploymentId string `json:"deploymentId,omitempty"`
+	Version      string `json:"version,omitempty"`
+}
+
+// StepOutputType_CFStatus Proto: StepOutputType_CFStatus
+type StepOutputType_CFStatus struct {
+	Output *CFStackOutput `json:"output,omitempty"`
+}
+
+// TriggerSource_InlineSource Proto: TriggerSource_InlineSource
+type TriggerSource_InlineSource struct {
+	Version     string                   `json:"version"`
+	Application *application.Application `json:"application"`
+}
+
+// EnvironmentEvent Proto: EnvironmentEvent
+type EnvironmentEvent struct {
+	Metadata      *state.EventMetadata  `json:"metadata"`
+	EnvironmentId string                `json:"environmentId,omitempty"`
+	ClusterId     string                `json:"clusterId,omitempty"`
+	Event         *EnvironmentEventType `json:"event"`
+}
+
+// EnvironmentStateData Proto: EnvironmentStateData
+type EnvironmentStateData struct {
+	Config *environment.Environment `json:"config,omitempty"`
+}
+
+// EnvironmentEventType_Configured Proto: EnvironmentEventType_Configured
+type EnvironmentEventType_Configured struct {
+	Config *environment.Environment `json:"config,omitempty"`
 }
 
 // CombinedClient
 type CombinedClient struct {
+	*DeploymentQueryService
 	*DeploymentCommandService
+	*ClusterQueryService
 	*StackQueryService
 	*EnvironmentQueryService
-	*ClusterQueryService
-	*DeploymentQueryService
 }
 
 func NewCombinedClient(requester Requester) *CombinedClient {
 	return &CombinedClient{
+		DeploymentQueryService:   NewDeploymentQueryService(requester),
 		DeploymentCommandService: NewDeploymentCommandService(requester),
+		ClusterQueryService:      NewClusterQueryService(requester),
 		StackQueryService:        NewStackQueryService(requester),
 		EnvironmentQueryService:  NewEnvironmentQueryService(requester),
-		ClusterQueryService:      NewClusterQueryService(requester),
-		DeploymentQueryService:   NewDeploymentQueryService(requester),
 	}
 }

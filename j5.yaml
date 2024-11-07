@@ -28,6 +28,6 @@ plugins:
   - name: go
     type: PLUGIN_J5_CLIENT
     docker:
-      image: ghcr.io/pentops/j5-gen-go-client:e1d0018f1f9d8278f26d3a005d4d4bbea699f544
+      image: ghcr.io/pentops/j5-gen-go-client:ce502ddb23f59b3371c3a3772c4bfec754c66d91
 
 

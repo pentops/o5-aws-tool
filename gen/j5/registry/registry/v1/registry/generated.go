@@ -156,7 +156,7 @@ type DownloadSwaggerResponse struct {
 
 // DownloadClientAPIRequest
 type DownloadClientAPIRequest struct {
-	Owner   string `path:"owner" json:"-"`
+	Owner   string `json:"-" path:"owner"`
 	Name    string `json:"-" path:"name"`
 	Version string `json:"-" path:"version"`
 }

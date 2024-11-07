@@ -8,25 +8,17 @@ import (
 	time "time"
 )
 
-// EventMetadata Proto: EventMetadata
-type EventMetadata struct {
-	EventId   string     `json:"eventId,omitempty"`
-	Sequence  uint64     `json:"sequence,omitempty"`
-	Timestamp *time.Time `json:"timestamp"`
-	Cause     *Cause     `json:"cause,omitempty"`
+// ReplyCause Proto: ReplyCause
+type ReplyCause struct {
+	Request *PSMEventCause `json:"request,omitempty"`
+	Async   bool           `json:"async,omitempty"`
 }
 
-// PSMEventCause Proto: PSMEventCause
-type PSMEventCause struct {
-	EventId      string `json:"eventId,omitempty"`
-	StateMachine string `json:"stateMachine,omitempty"`
-}
-
-// ExternalEventCause Proto: ExternalEventCause
-type ExternalEventCause struct {
-	SystemName string  `json:"systemName,omitempty"`
-	EventName  string  `json:"eventName,omitempty"`
-	ExternalId *string `json:"externalId,omitempty"`
+// StateMetadata Proto: StateMetadata
+type StateMetadata struct {
+	CreatedAt    *time.Time `json:"createdAt,omitempty"`
+	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
+	LastSequence uint64     `json:"lastSequence,omitempty"`
 }
 
 // Cause Proto Oneof: j5.state.v1.Cause
@@ -70,15 +62,23 @@ func (s Cause) Type() interface{} {
 	return nil
 }
 
-// StateMetadata Proto: StateMetadata
-type StateMetadata struct {
-	CreatedAt    *time.Time `json:"createdAt,omitempty"`
-	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
-	LastSequence uint64     `json:"lastSequence,omitempty"`
+// PSMEventCause Proto: PSMEventCause
+type PSMEventCause struct {
+	EventId      string `json:"eventId,omitempty"`
+	StateMachine string `json:"stateMachine,omitempty"`
 }
 
-// ReplyCause Proto: ReplyCause
-type ReplyCause struct {
-	Request *PSMEventCause `json:"request,omitempty"`
-	Async   bool           `json:"async,omitempty"`
+// ExternalEventCause Proto: ExternalEventCause
+type ExternalEventCause struct {
+	SystemName string  `json:"systemName,omitempty"`
+	EventName  string  `json:"eventName,omitempty"`
+	ExternalId *string `json:"externalId,omitempty"`
+}
+
+// EventMetadata Proto: EventMetadata
+type EventMetadata struct {
+	EventId   string     `json:"eventId,omitempty"`
+	Sequence  uint64     `json:"sequence,omitempty"`
+	Timestamp *time.Time `json:"timestamp"`
+	Cause     *Cause     `json:"cause,omitempty"`
 }
