@@ -27,9 +27,9 @@ func RegistryCommandSet() *commander.CommandSet {
 }
 
 func runLs(ctx context.Context, cfg struct {
-	API string `env:"O5_API" flag:"api"`
+	libo5.APIConfig
 }) error {
-	client := libo5.NewAPI(cfg.API)
+	client := cfg.APIClient()
 
 	registryClient := github.NewRepoQueryService(client)
 
