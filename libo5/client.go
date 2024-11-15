@@ -95,7 +95,11 @@ func (c *API) Request(ctx context.Context, method, path string, req, res interfa
 				if len(parts) == 3 {
 					dec, err := base64.RawURLEncoding.DecodeString(parts[1])
 					if err == nil {
-						fmt.Printf("\n====\n" + string(dec) + "\n====\n")
+						fmt.Printf("\n====\n%s\n====\n", string(dec))
+					}
+					dec, err = base64.RawURLEncoding.DecodeString(parts[0])
+					if err == nil {
+						fmt.Printf("\n====\n%s\n====\n", string(dec))
 					}
 				}
 				return fmt.Errorf("unauthorized - check $O5_BEARER")
@@ -117,7 +121,7 @@ func (c *API) Request(ctx context.Context, method, path string, req, res interfa
 			"status": httpRes.StatusCode,
 			"error":  err,
 		}).Error("bad JSON")
-		fmt.Printf("\n====\n" + string(resBody) + "\n====\n")
+		fmt.Print("\n====\n" + string(resBody) + "\n====\n")
 		return fmt.Errorf("marshal response: %w", err)
 	}
 

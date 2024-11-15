@@ -19,7 +19,7 @@ type LogStream struct {
 	LogStream string
 }
 
-func TailLogStream(ctx context.Context, client CloudwatchLogsClient, logGroup LogStream, fromTime time.Time) error {
+func TailLogStream(ctx context.Context, client CloudwatchLogsClient, logGroup LogStream, fromTime time.Time, callback func(context.Context, LogStream, string)) error {
 
 	fromTimeInt := fromTime.UnixNano() / int64(time.Millisecond)
 	var nextToken *string
@@ -41,7 +41,7 @@ func TailLogStream(ctx context.Context, client CloudwatchLogsClient, logGroup Lo
 		}
 
 		for _, event := range logEvents.Events {
-			fmt.Println(*event.Message)
+			callback(ctx, logGroup, *event.Message)
 		}
 
 		time.Sleep(time.Second)

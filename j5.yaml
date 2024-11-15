@@ -11,6 +11,7 @@ generate:
       - registry:
           owner: pentops
           name: o5-deploy
+          reference: refactor
 
       - registry:
           owner: pentops

@@ -294,7 +294,7 @@ func (s RepoCommandService) Trigger(ctx context.Context, req *TriggerRequest) (*
 type ConfigureRepoRequest struct {
 	Config *RepoEventType_Configure `json:"config,omitempty"`
 	Owner  string                   `json:"-" path:"owner"`
-	Name   string                   `json:"-" path:"name"`
+	Name   string                   `path:"name" json:"-"`
 }
 
 // ConfigureRepoResponse
@@ -314,31 +314,9 @@ type TriggerRequest struct {
 type TriggerResponse struct {
 }
 
-// DeployTargetType Proto Oneof: j5.registry.github.v1.DeployTargetType
-type DeployTargetType struct {
-	J5TypeKey string                    `json:"!type,omitempty"`
-	J5Build   *DeployTargetType_J5Build `json:"j5Build,omitempty"`
-	O5Build   *DeployTargetType_O5Build `json:"o5Build,omitempty"`
-}
-
-func (s DeployTargetType) OneofKey() string {
-	if s.J5Build != nil {
-		return "j5Build"
-	}
-	if s.O5Build != nil {
-		return "o5Build"
-	}
-	return ""
-}
-
-func (s DeployTargetType) Type() interface{} {
-	if s.J5Build != nil {
-		return s.J5Build
-	}
-	if s.O5Build != nil {
-		return s.O5Build
-	}
-	return nil
+// DeployTargetType_O5Build Proto: DeployTargetType_O5Build
+type DeployTargetType_O5Build struct {
+	Environment string `json:"environment,omitempty"`
 }
 
 // RepoStatus Proto Enum: j5.registry.github.v1.RepoStatus
@@ -349,19 +327,19 @@ const (
 	RepoStatus_ACTIVE      RepoStatus = "ACTIVE"
 )
 
-// RepoKeys Proto: RepoKeys
-type RepoKeys struct {
-	Owner string `json:"owner"`
-	Name  string `json:"name"`
+// RepoEventType_ConfigureBranch Proto: RepoEventType_ConfigureBranch
+type RepoEventType_ConfigureBranch struct {
+	Branch *Branch `json:"branch"`
+}
+
+// RepoStateData Proto: RepoStateData
+type RepoStateData struct {
+	ChecksEnabled bool      `json:"checksEnabled,omitempty"`
+	Branches      []*Branch `json:"branches,omitempty"`
 }
 
 // DeployTargetType_J5Build Proto: DeployTargetType_J5Build
 type DeployTargetType_J5Build struct {
-}
-
-// DeployTargetType_O5Build Proto: DeployTargetType_O5Build
-type DeployTargetType_O5Build struct {
-	Environment string `json:"environment,omitempty"`
 }
 
 // Branch Proto: Branch
@@ -370,24 +348,11 @@ type Branch struct {
 	DeployTargets []*DeployTargetType `json:"deployTargets,omitempty"`
 }
 
-// RepoEventType_ConfigureBranch Proto: RepoEventType_ConfigureBranch
-type RepoEventType_ConfigureBranch struct {
-	Branch *Branch `json:"branch"`
-}
-
 // RepoEventType_Configure Proto: RepoEventType_Configure
 type RepoEventType_Configure struct {
 	ChecksEnabled bool      `json:"checksEnabled,omitempty"`
 	Merge         bool      `json:"merge,omitempty"`
 	Branches      []*Branch `json:"branches,omitempty"`
-}
-
-// RepoEvent Proto: RepoEvent
-type RepoEvent struct {
-	Metadata *state.EventMetadata `json:"metadata"`
-	Owner    string               `json:"owner"`
-	Name     string               `json:"name"`
-	Event    *RepoEventType       `json:"event"`
 }
 
 // RepoEventType Proto Oneof: j5.registry.github.v1.RepoEventType
@@ -424,10 +389,42 @@ func (s RepoEventType) Type() interface{} {
 	return nil
 }
 
-// RepoStateData Proto: RepoStateData
-type RepoStateData struct {
-	ChecksEnabled bool      `json:"checksEnabled,omitempty"`
-	Branches      []*Branch `json:"branches,omitempty"`
+// RepoEventType_RemoveBranch Proto: RepoEventType_RemoveBranch
+type RepoEventType_RemoveBranch struct {
+	BranchName string `json:"branchName"`
+}
+
+// RepoKeys Proto: RepoKeys
+type RepoKeys struct {
+	Owner string `json:"owner"`
+	Name  string `json:"name"`
+}
+
+// DeployTargetType Proto Oneof: j5.registry.github.v1.DeployTargetType
+type DeployTargetType struct {
+	J5TypeKey string                    `json:"!type,omitempty"`
+	J5Build   *DeployTargetType_J5Build `json:"j5Build,omitempty"`
+	O5Build   *DeployTargetType_O5Build `json:"o5Build,omitempty"`
+}
+
+func (s DeployTargetType) OneofKey() string {
+	if s.J5Build != nil {
+		return "j5Build"
+	}
+	if s.O5Build != nil {
+		return "o5Build"
+	}
+	return ""
+}
+
+func (s DeployTargetType) Type() interface{} {
+	if s.J5Build != nil {
+		return s.J5Build
+	}
+	if s.O5Build != nil {
+		return s.O5Build
+	}
+	return nil
 }
 
 // RepoState Proto: RepoState
@@ -439,9 +436,12 @@ type RepoState struct {
 	Data     *RepoStateData       `json:"data,omitempty"`
 }
 
-// RepoEventType_RemoveBranch Proto: RepoEventType_RemoveBranch
-type RepoEventType_RemoveBranch struct {
-	BranchName string `json:"branchName"`
+// RepoEvent Proto: RepoEvent
+type RepoEvent struct {
+	Metadata *state.EventMetadata `json:"metadata"`
+	Owner    string               `json:"owner"`
+	Name     string               `json:"name"`
+	Event    *RepoEventType       `json:"event"`
 }
 
 // CombinedClient
