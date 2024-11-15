@@ -5,29 +5,17 @@ package environment
 
 import ()
 
-// CombinedConfig Proto: CombinedConfig
-type CombinedConfig struct {
-	Name         string         `json:"name,omitempty"`
-	EcsCluster   *ECSCluster    `json:"ecsCluster,omitempty"`
-	Environments []*Environment `json:"environments,omitempty"`
-}
-
-// RDSHost Proto: RDSHost
-type RDSHost struct {
-	ServerGroup string `json:"serverGroup,omitempty"`
-	SecretName  string `json:"secretName,omitempty"`
-}
-
 // NamedIAMPolicy Proto: NamedIAMPolicy
 type NamedIAMPolicy struct {
 	Name      string `json:"name,omitempty"`
 	PolicyArn string `json:"policyArn,omitempty"`
 }
 
-// Cluster Proto: Cluster
-type Cluster struct {
-	Name       string      `json:"name,omitempty"`
-	EcsCluster *ECSCluster `json:"ecsCluster,omitempty"`
+// CustomVariable Proto: CustomVariable
+type CustomVariable struct {
+	Name  string               `json:"name,omitempty"`
+	Value string               `json:"value,omitempty"`
+	Join  *CustomVariable_Join `json:"join,omitempty"`
 }
 
 // Environment Proto: Environment
@@ -40,17 +28,116 @@ type Environment struct {
 	Aws         *AWSEnvironment   `json:"aws,omitempty"`
 }
 
+// ALBIngress Proto: ALBIngress
+type ALBIngress struct {
+	ListenerArn     string `json:"listenerArn,omitempty"`
+	SecurityGroupId string `json:"securityGroupId,omitempty"`
+}
+
+// Cluster Proto: Cluster
+type Cluster struct {
+	Name string      `json:"name,omitempty"`
+	Aws  *AWSCluster `json:"aws,omitempty"`
+}
+
 // CustomVariable_Join Proto: CustomVariable_Join
 type CustomVariable_Join struct {
 	Delimiter string   `json:"delimiter,omitempty"`
 	Values    []string `json:"values,omitempty"`
 }
 
-// CustomVariable Proto: CustomVariable
-type CustomVariable struct {
-	Name  string               `json:"name,omitempty"`
-	Value string               `json:"value,omitempty"`
-	Join  *CustomVariable_Join `json:"join,omitempty"`
+// CombinedConfig Proto: CombinedConfig
+type CombinedConfig struct {
+	Name         string         `json:"name,omitempty"`
+	Aws          *AWSCluster    `json:"aws,omitempty"`
+	Environments []*Environment `json:"environments,omitempty"`
+}
+
+// RDSHost Proto: RDSHost
+type RDSHost struct {
+	ServerGroupName       string       `json:"serverGroupName,omitempty"`
+	ClientSecurityGroupId string       `json:"clientSecurityGroupId,omitempty"`
+	Identifier            string       `json:"identifier,omitempty"`
+	Endpoint              string       `json:"endpoint,omitempty"`
+	Port                  int32        `json:"port,omitempty"`
+	Auth                  *RDSAuthType `json:"auth,omitempty"`
+}
+
+// O5Sidecar Proto: O5Sidecar
+type O5Sidecar struct {
+	ImageVersion string  `json:"imageVersion,omitempty"`
+	ImageRepo    *string `json:"imageRepo,omitempty"`
+}
+
+// ECSCluster Proto: ECSCluster
+type ECSCluster struct {
+	ClusterName         string   `json:"clusterName,omitempty"`
+	TaskExecutionRole   string   `json:"taskExecutionRole,omitempty"`
+	DefaultRegistry     string   `json:"defaultRegistry,omitempty"`
+	SubnetIds           []string `json:"subnetIds,omitempty"`
+	BaseSecurityGroupId string   `json:"baseSecurityGroupId,omitempty"`
+}
+
+// AWSCluster Proto: AWSCluster
+type AWSCluster struct {
+	VpcId           string       `json:"vpcId,omitempty"`
+	AwsAccount      string       `json:"awsAccount,omitempty"`
+	AwsRegion       string       `json:"awsRegion,omitempty"`
+	GlobalNamespace string       `json:"globalNamespace,omitempty"`
+	O5Deployer      *O5Deployer  `json:"o5Deployer,omitempty"`
+	AlbIngress      *ALBIngress  `json:"albIngress,omitempty"`
+	O5Sidecar       *O5Sidecar   `json:"o5Sidecar,omitempty"`
+	EventBridge     *EventBridge `json:"eventBridge,omitempty"`
+	EcsCluster      *ECSCluster  `json:"ecsCluster,omitempty"`
+	RdsHosts        []*RDSHost   `json:"rdsHosts,omitempty"`
+}
+
+// RDSAuthType_IAM Proto: RDSAuthType_IAM
+type RDSAuthType_IAM struct {
+	DbUser string  `json:"dbUser,omitempty"`
+	DbName *string `json:"dbName,omitempty"`
+}
+
+// RDSAuthType Proto Oneof: o5.environment.v1.RDSAuthType
+type RDSAuthType struct {
+	J5TypeKey      string                      `json:"!type,omitempty"`
+	SecretsManager *RDSAuthType_SecretsManager `json:"secretsManager,omitempty"`
+	Iam            *RDSAuthType_IAM            `json:"iam,omitempty"`
+}
+
+func (s RDSAuthType) OneofKey() string {
+	if s.SecretsManager != nil {
+		return "secretsManager"
+	}
+	if s.Iam != nil {
+		return "iam"
+	}
+	return ""
+}
+
+func (s RDSAuthType) Type() interface{} {
+	if s.SecretsManager != nil {
+		return s.SecretsManager
+	}
+	if s.Iam != nil {
+		return s.Iam
+	}
+	return nil
+}
+
+// EventBridge Proto: EventBridge
+type EventBridge struct {
+	EventBusArn string `json:"eventBusArn,omitempty"`
+}
+
+// O5Deployer Proto: O5Deployer
+type O5Deployer struct {
+	AssumeRoleArn string `json:"assumeRoleArn,omitempty"`
+}
+
+// RDSAuthType_SecretsManager Proto: RDSAuthType_SecretsManager
+type RDSAuthType_SecretsManager struct {
+	SecretName string `json:"secretName,omitempty"`
 }
 
 // AWSEnvironment Proto: AWSEnvironment
@@ -65,22 +152,4 @@ type AWSLink struct {
 	LookupName string `json:"lookupName,omitempty"`
 	FullName   string `json:"fullName,omitempty"`
 	SnsPrefix  string `json:"snsPrefix,omitempty"`
-}
-
-// ECSCluster Proto: ECSCluster
-type ECSCluster struct {
-	ListenerArn          string     `json:"listenerArn,omitempty"`
-	EcsClusterName       string     `json:"ecsClusterName,omitempty"`
-	EcsRepo              string     `json:"ecsRepo,omitempty"`
-	EcsTaskExecutionRole string     `json:"ecsTaskExecutionRole,omitempty"`
-	VpcId                string     `json:"vpcId,omitempty"`
-	AwsAccount           string     `json:"awsAccount,omitempty"`
-	AwsRegion            string     `json:"awsRegion,omitempty"`
-	EventBusArn          string     `json:"eventBusArn,omitempty"`
-	O5DeployerAssumeRole string     `json:"o5DeployerAssumeRole,omitempty"`
-	O5DeployerGrantRoles []string   `json:"o5DeployerGrantRoles,omitempty"`
-	RdsHosts             []*RDSHost `json:"rdsHosts,omitempty"`
-	SidecarImageVersion  string     `json:"sidecarImageVersion,omitempty"`
-	SidecarImageRepo     *string    `json:"sidecarImageRepo,omitempty"`
-	GlobalNamespace      string     `json:"globalNamespace,omitempty"`
 }

@@ -7,6 +7,39 @@ import (
 	time "time"
 )
 
+// Actor Proto: Actor
+type Actor struct {
+	SubjectId            string                `json:"subjectId,omitempty"`
+	SubjectType          string                `json:"subjectType,omitempty"`
+	AuthenticationMethod *AuthenticationMethod `json:"authenticationMethod,omitempty"`
+	Claim                *Claim                `json:"claim"`
+	ActorTags            map[string]string     `json:"actorTags,omitempty"`
+}
+
+// MethodAuthType_Cookie Proto: MethodAuthType_Cookie
+type MethodAuthType_Cookie struct {
+}
+
+// MethodAuthType_Custom Proto: MethodAuthType_Custom
+type MethodAuthType_Custom struct {
+	PassThroughHeaders []string `json:"passThroughHeaders,omitempty"`
+}
+
+// AuthenticationMethod_JWT Proto: AuthenticationMethod_JWT
+type AuthenticationMethod_JWT struct {
+	JwtId    string     `json:"jwtId,omitempty"`
+	Issuer   string     `json:"issuer,omitempty"`
+	IssuedAt *time.Time `json:"issuedAt,omitempty"`
+}
+
+// AuthenticationMethod_Session Proto: AuthenticationMethod_Session
+type AuthenticationMethod_Session struct {
+	SessionManager  string     `json:"sessionManager,omitempty"`
+	SessionId       string     `json:"sessionId,omitempty"`
+	VerifiedAt      *time.Time `json:"verifiedAt,omitempty"`
+	AuthenticatedAt *time.Time `json:"authenticatedAt,omitempty"`
+}
+
 // MethodAuthType Proto Oneof: j5.auth.v1.MethodAuthType
 type MethodAuthType struct {
 	J5TypeKey string                    `json:"!type,omitempty"`
@@ -54,43 +87,6 @@ type Fingerprint struct {
 	UserAgent *string `json:"userAgent,omitempty"`
 }
 
-// MethodAuthType_Custom Proto: MethodAuthType_Custom
-type MethodAuthType_Custom struct {
-	PassThroughHeaders []string `json:"passThroughHeaders,omitempty"`
-}
-
-// AuthenticationMethod_JWT Proto: AuthenticationMethod_JWT
-type AuthenticationMethod_JWT struct {
-	JwtId    string     `json:"jwtId,omitempty"`
-	Issuer   string     `json:"issuer,omitempty"`
-	IssuedAt *time.Time `json:"issuedAt,omitempty"`
-}
-
-// AuthenticationMethod_External Proto: AuthenticationMethod_External
-type AuthenticationMethod_External struct {
-	SystemName string            `json:"systemName,omitempty"`
-	Metadata   map[string]string `json:"metadata,omitempty"`
-}
-
-// Claim Proto: Claim
-type Claim struct {
-	RealmId    string   `json:"realmId,omitempty"`
-	TenantType string   `json:"tenantType,omitempty"`
-	TenantId   string   `json:"tenantId,omitempty"`
-	Scopes     []string `json:"scopes,omitempty"`
-}
-
-// MethodAuthType_JWTBearer Proto: MethodAuthType_JWTBearer
-type MethodAuthType_JWTBearer struct {
-}
-
-// Action Proto: Action
-type Action struct {
-	Method      string       `json:"method"`
-	Actor       *Actor       `json:"actor"`
-	Fingerprint *Fingerprint `json:"fingerprint,omitempty"`
-}
-
 // AuthenticationMethod Proto Oneof: j5.auth.v1.AuthenticationMethod
 type AuthenticationMethod struct {
 	J5TypeKey string                         `json:"!type,omitempty"`
@@ -125,27 +121,31 @@ func (s AuthenticationMethod) Type() interface{} {
 	return nil
 }
 
-// AuthenticationMethod_Session Proto: AuthenticationMethod_Session
-type AuthenticationMethod_Session struct {
-	SessionManager  string     `json:"sessionManager,omitempty"`
-	SessionId       string     `json:"sessionId,omitempty"`
-	VerifiedAt      *time.Time `json:"verifiedAt,omitempty"`
-	AuthenticatedAt *time.Time `json:"authenticatedAt,omitempty"`
+// Claim Proto: Claim
+type Claim struct {
+	RealmId    string   `json:"realmId,omitempty"`
+	TenantType string   `json:"tenantType,omitempty"`
+	TenantId   string   `json:"tenantId,omitempty"`
+	Scopes     []string `json:"scopes,omitempty"`
+}
+
+// MethodAuthType_JWTBearer Proto: MethodAuthType_JWTBearer
+type MethodAuthType_JWTBearer struct {
+}
+
+// AuthenticationMethod_External Proto: AuthenticationMethod_External
+type AuthenticationMethod_External struct {
+	SystemName string            `json:"systemName,omitempty"`
+	Metadata   map[string]string `json:"metadata,omitempty"`
 }
 
 // MethodAuthType_None Proto: MethodAuthType_None
 type MethodAuthType_None struct {
 }
 
-// Actor Proto: Actor
-type Actor struct {
-	SubjectId            string                `json:"subjectId,omitempty"`
-	SubjectType          string                `json:"subjectType,omitempty"`
-	AuthenticationMethod *AuthenticationMethod `json:"authenticationMethod,omitempty"`
-	Claim                *Claim                `json:"claim"`
-	ActorTags            map[string]string     `json:"actorTags,omitempty"`
-}
-
-// MethodAuthType_Cookie Proto: MethodAuthType_Cookie
-type MethodAuthType_Cookie struct {
+// Action Proto: Action
+type Action struct {
+	Method      string       `json:"method"`
+	Actor       *Actor       `json:"actor"`
+	Fingerprint *Fingerprint `json:"fingerprint,omitempty"`
 }

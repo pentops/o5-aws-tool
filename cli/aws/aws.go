@@ -2,7 +2,10 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	"github.com/fatih/color"
 	"github.com/pentops/o5-aws-tool/awsinspect"
 	"github.com/pentops/runner"
 	"github.com/pentops/runner/commander"
@@ -26,7 +30,6 @@ func CommandSet() *commander.CommandSet {
 
 	stacksGroup := commander.NewCommandSet()
 	stacksGroup.Add("ls", commander.NewCommand(runStacksList))
-
 	cmdGroup.Add("stacks", stacksGroup)
 
 	return cmdGroup
@@ -136,10 +139,61 @@ func runAWSLogs(ctx context.Context, cfg struct {
 	for _, logStream := range logStreams {
 		logStream := logStream
 		rg.Add(logStream.Container, func(ctx context.Context) error {
-			return awsinspect.TailLogStream(ctx, logClient, logStream, fromTime)
+			return awsinspect.TailLogStream(ctx, logClient, logStream, fromTime, prettyLog)
 		})
 	}
 
 	return rg.Run(ctx)
+
+}
+
+var levelColors = map[string]color.Attribute{
+	"debug": color.FgBlue,
+	"info":  color.FgGreen,
+	"warn":  color.FgYellow,
+	"error": color.FgRed,
+}
+
+type logLine struct {
+	Level   string                 `json:"level"`
+	Time    string                 `json:"time"`
+	Message string                 `json:"message"`
+	Fields  map[string]interface{} `json:"fields"`
+}
+
+func prettyLog(ctx context.Context, logGroup awsinspect.LogStream, message string) {
+	out := os.Stdout
+	if len(message) < 1 {
+		return
+	}
+	if message[0] != '{' {
+		fmt.Fprintf(out, "[%s] %s\n", logGroup.Container, message)
+		return
+	}
+
+	line := logLine{}
+	err := json.Unmarshal([]byte(message), &line)
+	if err != nil {
+		fmt.Fprintf(out, "[%s] %s\n", logGroup.Container, message)
+		return
+	}
+
+	whichColor, ok := levelColors[strings.ToLower(line.Level)]
+	if !ok {
+		whichColor = color.FgWhite
+	}
+	levelColor := color.New(whichColor).SprintFunc()
+	fmt.Fprintf(out, "%s [%s] %s\n", levelColor(line.Level), logGroup.LogStream, levelColor(line.Message))
+
+	for k, v := range line.Fields {
+
+		switch v.(type) {
+		case string, int, int64, int32, float64, bool:
+			fmt.Fprintf(out, "  | %s: %v\n", k, v)
+		default:
+			nice, _ := json.MarshalIndent(v, "  |  ", "  ")
+			fmt.Fprintf(out, "  | %s: %s\n", k, string(nice))
+		}
+	}
 
 }
