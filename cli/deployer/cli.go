@@ -124,6 +124,7 @@ func runTrigger(ctx context.Context, cfg struct {
 	AppName string `env:"APP_NAME" flag:"repo"`
 	Org     string `env:"GITHUB_ORG" flag:"org"`
 	EnvName string `env:"ENV_NAME" flag:"env"`
+
 	Version string `env:"VERSION" flag:"version"`
 	Import  bool   `flag:"import"`
 

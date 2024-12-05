@@ -6,7 +6,7 @@ generate:
     inputs:
       - registry:
           owner: pentops
-          name: registry
+          name: builds
 
       - registry:
           owner: pentops
@@ -23,7 +23,7 @@ generate:
       go_package_prefix: github.com/pentops/o5-aws-tool/gen
 
 managedPaths:
-  - ./libo5/packages
+  - ./gen
 
 plugins:
   - name: go

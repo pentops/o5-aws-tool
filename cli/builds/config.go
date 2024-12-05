@@ -1,4 +1,4 @@
-package registry
+package builds
 
 import (
 	"bytes"
@@ -8,46 +8,35 @@ import (
 	"os"
 
 	"github.com/pentops/o5-aws-tool/cli"
-	"github.com/pentops/o5-aws-tool/gen/j5/registry/github/v1/github"
+	"github.com/pentops/o5-aws-tool/gen/j5/builds/github/v1/github"
 	"github.com/pentops/o5-aws-tool/libo5"
-
-	"github.com/pentops/runner/commander"
 	"gopkg.in/yaml.v2"
 )
 
-func RegistryCommandSet() *commander.CommandSet {
-
-	registryGroup := commander.NewCommandSet()
-
-	registryGroup.Add("ls", commander.NewCommand(runLs))
-	registryGroup.Add("sync-config", commander.NewCommand(runRegistryConfig))
-
-	return registryGroup
-
+type DeployBranch struct {
+	Name string `json:"name"`
+	Env  string `json:"env"`
 }
 
-func runLs(ctx context.Context, cfg struct {
-	libo5.APIConfig
-}) error {
-	client := cfg.APIClient()
+type RepoConfig struct {
+	Owner          string          `yaml:"owner"`
+	Repo           string          `yaml:"repo"`
+	Checks         bool            `yaml:"checks"`
+	J5             bool            `yaml:"j5"`
+	DeployBranches []*DeployBranch `yaml:"deployBranches"`
+}
 
-	registryClient := github.NewRepoQueryService(client)
-
-	repos, err := libo5.PagedAll(ctx, &github.ListReposRequest{}, registryClient.ListRepos)
-	if err != nil {
-		return err
+func parseRepos(data []byte) ([]RepoConfig, error) {
+	rawType := struct {
+		Repos []RepoConfig
+	}{}
+	dec := yaml.NewDecoder(bytes.NewReader(data))
+	dec.SetStrict(true)
+	if err := dec.Decode(&rawType); err != nil {
+		return nil, fmt.Errorf("unmarshal: %w", err)
 	}
 
-	for _, repo := range repos {
-		fmt.Printf("Repo: %s/%s\n", repo.Owner, repo.Name)
-		for _, branch := range repo.Data.Branches {
-			fmt.Printf("  Branch: %s\n", branch.BranchName)
-			for _, deployTarget := range branch.DeployTargets {
-				fmt.Printf("    Deploy Target: %s\n", deployTarget.OneofKey())
-			}
-		}
-	}
-	return nil
+	return rawType.Repos, nil
 
 }
 
@@ -66,24 +55,9 @@ func runRegistryConfig(ctx context.Context, cfg struct {
 		return fmt.Errorf("read file: %w", err)
 	}
 
-	type DeployBranch struct {
-		Name string `json:"name"`
-		Env  string `json:"env"`
-	}
-	type repoConfig struct {
-		Owner          string          `yaml:"owner"`
-		Repo           string          `yaml:"repo"`
-		Checks         bool            `yaml:"checks"`
-		J5             bool            `yaml:"j5"`
-		DeployBranches []*DeployBranch `yaml:"deployBranches"`
-	}
-	rawType := struct {
-		Repos []repoConfig
-	}{}
-	dec := yaml.NewDecoder(bytes.NewReader(data))
-	dec.SetStrict(true)
-	if err := dec.Decode(&rawType); err != nil {
-		return fmt.Errorf("unmarshal: %w", err)
+	repos, err := parseRepos(data)
+	if err != nil {
+		return fmt.Errorf("parse repos: %w", err)
 	}
 
 	allRepos, err := libo5.PagedAll(ctx, &github.ListReposRequest{}, regClient.ListRepos)
@@ -95,7 +69,7 @@ func runRegistryConfig(ctx context.Context, cfg struct {
 		return fmt.Sprintf("%s/%s", repo.Owner, repo.Name)
 	})
 
-	for _, repo := range rawType.Repos {
+	for _, repo := range repos {
 		if len(cfg.Filter) > 0 {
 			found := false
 			for _, filter := range cfg.Filter {
@@ -179,7 +153,7 @@ func runRegistryConfig(ctx context.Context, cfg struct {
 	}
 
 	for id := range byID {
-		fmt.Printf("Removing %s\n", id)
+		fmt.Printf("Exists on remote: %s\n", id)
 	}
 
 	return nil
