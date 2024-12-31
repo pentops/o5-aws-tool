@@ -300,9 +300,6 @@ func runDanteLs(ctx context.Context, cfg struct {
 						TypeUrl:  state.Data.CurrentVersion.Message.Body.TypeUrl,
 						Encoding: state.Data.CurrentVersion.Message.Body.Encoding,
 					},
-					MessageId:   state.Data.CurrentVersion.Message.MessageId,
-					GrpcService: state.Data.CurrentVersion.Message.GrpcService,
-					GrpcMethod:  state.Data.CurrentVersion.Message.GrpcMethod,
 				}
 				hasMods = true
 				return nil
