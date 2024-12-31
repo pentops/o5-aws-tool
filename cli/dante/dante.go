@@ -286,8 +286,6 @@ func runDanteLs(ctx context.Context, cfg struct {
 				if err := json.Indent(buff, []byte(newBody), "  ", "  "); err != nil {
 					return fmt.Errorf("indent body: %w", err)
 				}
-				fmt.Printf("New Body\n")
-				fmt.Printf("%s\n", buff.String())
 
 				newVersion.Message = &messaging.Message{
 					MessageId:   state.Data.CurrentVersion.Message.MessageId,
@@ -302,6 +300,9 @@ func runDanteLs(ctx context.Context, cfg struct {
 						TypeUrl:  state.Data.CurrentVersion.Message.Body.TypeUrl,
 						Encoding: state.Data.CurrentVersion.Message.Body.Encoding,
 					},
+					MessageId:   state.Data.CurrentVersion.Message.MessageId,
+					GrpcService: state.Data.CurrentVersion.Message.GrpcService,
+					GrpcMethod:  state.Data.CurrentVersion.Message.GrpcMethod,
 				}
 				hasMods = true
 				return nil
