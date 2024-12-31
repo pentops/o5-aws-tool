@@ -15,8 +15,9 @@ import (
 
 func runDeployment(ctx context.Context, args struct {
 	StateCache
-	DeploymentID string   `flag:"id" default:"$last"`
-	Flags        []string `flag:",remaining"`
+	DeploymentID string `flag:"id" default:"$last"`
+
+	Flags []string `flag:",remaining"`
 }) error {
 
 	if args.DeploymentID == "$last" {
@@ -245,19 +246,32 @@ func runDeployments(ctx context.Context, cfg struct {
 	runningDeployments := []*deployer.DeploymentState{}
 
 	for _, foundDeployment := range foundDeployments {
+		if !cfg.All && foundDeployment.Status != "RUNNING" && foundDeployment.Status != "QUEUED" {
+			continue
+		}
 
 		if cfg.Q {
 			fmt.Println(foundDeployment.DeploymentId)
 			continue
 		}
+		runningDeployments = append(runningDeployments, foundDeployment)
+
+	}
+
+	if cfg.Q {
+		return nil
+	}
+
+	if len(runningDeployments) == 0 {
+		// latest
+		runningDeployments = foundDeployments[:1]
+	}
+
+	for _, foundDeployment := range runningDeployments {
 
 		statusColor, ok := deploymentStatusColor[foundDeployment.Status]
 		if !ok {
 			statusColor = color.FgWhite
-		}
-
-		if cfg.All || foundDeployment.Status == "RUNNING" {
-			runningDeployments = append(runningDeployments, foundDeployment)
 		}
 
 		fmt.Printf("DeploymentID: %s\n", foundDeployment.DeploymentId)

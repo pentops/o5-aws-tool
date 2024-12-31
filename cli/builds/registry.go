@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/pentops/o5-aws-tool/gen/j5/builds/github/v1/github"
+	"github.com/pentops/o5-aws-tool/gen/o5/aws/deployer/v1/deployer"
 	"github.com/pentops/o5-aws-tool/libo5"
 
 	"github.com/pentops/runner/commander"
@@ -19,7 +21,7 @@ func BuildsCommandSet() *commander.CommandSet {
 	registryGroup.Add("sync-config", commander.NewCommand(runRegistryConfig))
 	registryGroup.Add("trigger-j5", commander.NewCommand(runTriggerJ5))
 	registryGroup.Add("trigger-o5", commander.NewCommand(runTriggerO5))
-	registryGroup.Add("trigger-o5-group", commander.NewCommand(runTriggerO5Group))
+	registryGroup.Add("trigger-group", commander.NewCommand(runTriggerGroup))
 
 	return registryGroup
 
@@ -50,7 +52,7 @@ func runLs(ctx context.Context, cfg struct {
 
 }
 
-func runTriggerO5Group(ctx context.Context, cfg struct {
+func runTriggerGroup(ctx context.Context, cfg struct {
 	libo5.APIConfig
 	File string `flag:"file"`
 }) error {
@@ -94,7 +96,27 @@ func runTriggerO5Group(ctx context.Context, cfg struct {
 			for _, target := range res.Targets {
 				fmt.Printf("Target: %s\n", target)
 			}
-			fmt.Printf("Triggered %d targets\n", len(res.Targets))
+			fmt.Printf("Triggered %d O5 targets\n", len(res.Targets))
+		}
+
+		if repo.J5 {
+			fmt.Printf("  Build Branch main to j5\n")
+			res, err := regClient.Trigger(ctx, &github.TriggerRequest{
+				Commit: "refs/heads/main",
+				Owner:  repo.Owner,
+				Repo:   repo.Repo,
+				Target: &github.DeployTargetType{
+					J5Build: &github.DeployTargetType_J5Build{},
+				},
+			})
+			if err != nil {
+				return fmt.Errorf("trigger: %w", err)
+			}
+
+			for _, target := range res.Targets {
+				fmt.Printf("Target: %s\n", target)
+			}
+			fmt.Printf("Triggered %d J5 targets\n", len(res.Targets))
 		}
 
 	}
@@ -140,6 +162,29 @@ func runTriggerO5(ctx context.Context, cfg struct {
 	Environment string `flag:"env"`
 }) error {
 	client := cfg.APIClient()
+
+	_, err := uuid.Parse(cfg.Environment)
+	if err != nil {
+		found := false
+		queryClient := deployer.NewEnvironmentQueryService(client)
+		if err := libo5.Paged(ctx,
+			&deployer.ListEnvironmentsRequest{}, queryClient.ListEnvironments,
+			func(env *deployer.EnvironmentState) error {
+				if env.Data.Config.FullName == cfg.Environment {
+					cfg.Environment = env.EnvironmentId
+					found = true
+				}
+
+				return nil
+			}); err != nil {
+			return fmt.Errorf("list stacks: %w", err)
+		}
+
+		if !found {
+			return fmt.Errorf("environment not found")
+		}
+
+	}
 
 	registryClient := github.NewRepoCommandService(client)
 

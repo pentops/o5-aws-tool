@@ -1,6 +1,7 @@
 package logs
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -118,6 +119,7 @@ func runEventLogs(ctx context.Context, cfg struct {
 		case *types.StartLiveTailResponseStreamMemberSessionUpdate:
 			for _, logEvent := range ev.Value.SessionResults {
 				logEventEvent(*logEvent.Message)
+				fmt.Printf("------------------------\n\n")
 			}
 		default:
 			// Handle on-stream exceptions
@@ -163,14 +165,28 @@ func logEventEvent(message string) {
 	}
 
 	fmt.Printf("Event: %s\n", msg.MessageId)
-	fmt.Printf("  Topic: %s\n", msg.DestinationTopic)
-	fmt.Printf("  Source App: %s\n", msg.SourceApp)
-	fmt.Printf("  Source Env: %s\n", msg.SourceEnv)
-	fmt.Printf("  Timestamp: %s\n", msg.Timestamp.AsTime().Format(time.RFC3339))
 
-	fmt.Printf("  GRPCService: %s\n", msg.GrpcService)
-	fmt.Printf("  GRPCMethod: %s\n", msg.GrpcMethod)
+	fmt.Printf("  SourceApp:   %s\n", msg.SourceApp)
+	fmt.Printf("  SourceEnv:   %s\n", msg.SourceEnv)
+	fmt.Printf("  GrpcMethod:  %s\n", msg.GrpcMethod)
+	fmt.Printf("  GrpcService: %s\n", msg.GrpcService)
+	fmt.Printf("  MessageId:   %s\n", msg.MessageId)
+	fmt.Printf("  Dest.Topic:  %s\n", msg.DestinationTopic)
+	fmt.Printf("  Timestamp:   %s\n", msg.Timestamp.AsTime().Format(time.RFC3339))
+	fmt.Printf("  Headers: \n")
+
+	for key, val := range msg.Headers {
+		fmt.Printf("    %s: %s\n", key, val)
+	}
+	switch mt := msg.Extension.(type) {
+	case *messaging_pb.Message_Request_:
+		fmt.Printf("  Request.ReplyTo: %s\n", mt.Request.ReplyTo)
+	case *messaging_pb.Message_Reply_:
+		fmt.Printf("  Reply.ReplyTo: %s\n", mt.Reply.ReplyTo)
+	}
+
 	fmt.Printf("  Body.TypeUrl: %s\n", msg.Body.TypeUrl)
+	fmt.Printf("  Body.Encoding: %s\n", msg.Body.Encoding)
 	/*
 		body, err := base64.URLEncoding.DecodeString(string(msg.Body.Value))
 		if err != nil {
@@ -192,8 +208,19 @@ func logEventEvent(message string) {
 		}
 
 	default:
-
-		fmt.Printf("  Body: %s\n", body)
+		if len(body) > 1000 {
+			fmt.Printf("  Body: %s\n", body)
+		} else {
+			buf := &bytes.Buffer{}
+			err = json.Indent(buf, body, "    ", "  ")
+			if err != nil {
+				fmt.Printf("  Body.ERROR: %s\n", err)
+				fmt.Printf("  Body: %s\n", body)
+			} else {
+				fmt.Println("  Body: ")
+				fmt.Println(buf.String())
+			}
+		}
 	}
 	//	}
 

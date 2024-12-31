@@ -58,6 +58,7 @@ func GetStackServices(ctx context.Context, client FormationClient, stackName str
 
 		for _, param := range stackRes.Stacks[0].Parameters {
 			if *param.ParameterKey == "ECSCluster" {
+
 				return *param.ParameterValue, nil
 			}
 		}

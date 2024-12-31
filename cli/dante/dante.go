@@ -44,6 +44,29 @@ func prettyPrintJSON(data []byte, truncate bool) {
 	fmt.Printf("  | %s\n", body)
 }
 
+func printMetadata(message *messaging.Message) {
+
+	fmt.Printf(" Source App:   %s\n", message.SourceApp)
+	fmt.Printf(" Source Env:   %s\n", message.SourceEnv)
+	fmt.Printf(" GRPC Method:  %s\n", message.GrpcMethod)
+	fmt.Printf(" GRPC Service: %s\n", message.GrpcService)
+	fmt.Printf(" Message ID:   %s\n", message.MessageId)
+	fmt.Printf(" Dest Topic:   %s\n", message.DestinationTopic)
+	fmt.Printf(" Timestamp:    %s\n", message.Timestamp)
+	fmt.Printf(" Headers: \n")
+
+	for key, val := range message.Headers {
+		fmt.Printf("  %s: %s\n", key, val)
+	}
+	if message.Request != nil {
+		fmt.Printf("Request ReplyTo: %s\n", message.Request.ReplyTo)
+	}
+	if message.Reply != nil {
+		fmt.Printf("Reply ReplyTo: %s\n", message.Reply.ReplyTo)
+	}
+
+}
+
 func runDanteLs(ctx context.Context, cfg struct {
 	libo5.APIConfig
 	Interactive bool `flag:"i" help:"Interactive mode"`
@@ -120,6 +143,7 @@ func runDanteLs(ctx context.Context, cfg struct {
 				}
 				newID := uuid.NewString()
 				newVersion.VersionId = newID
+
 				res, err := commandClient.UpdateDeadMessage(ctx, &dante.UpdateDeadMessageRequest{
 					MessageId:         state.MessageId,
 					ReplacesVersionId: state.Data.CurrentVersion.VersionId,
@@ -152,7 +176,8 @@ func runDanteLs(ctx context.Context, cfg struct {
 		}
 
 		printFullCommand := &cli.Command{
-			Name:    "print-body",
+			Name:    "body",
+			Short:   "b",
 			Summary: "Prints the full message body",
 			Run: func() error {
 				fmt.Printf("Full Message\n")
@@ -162,13 +187,30 @@ func runDanteLs(ctx context.Context, cfg struct {
 		}
 
 		printMetadataCommand := &cli.Command{
-			Name:    "print-metadata",
+			Name:    "metadata",
+			Short:   "m",
 			Summary: "Prints the metadata",
+
 			Run: func() error {
 				fmt.Printf("Metadata\n")
-				fmt.Printf("Handler Env: %s\n", state.Data.Notification.HandlerEnv)
-				fmt.Printf("Handler App: %s\n", state.Data.Notification.HandlerApp)
-				fmt.Printf("Death ID: %s\n", state.Data.Notification.DeathId)
+				fmt.Printf(" Handler Env:  %s\n", state.Data.Notification.HandlerEnv)
+				fmt.Printf(" Handler App:  %s\n", state.Data.Notification.HandlerApp)
+				fmt.Printf(" Death ID:     %s\n", state.Data.Notification.DeathId)
+				printMetadata(state.Data.Notification.Message)
+				/*
+
+					MessageId        string            `json:"messageId,omitempty"`
+					GrpcService      string            `json:"grpcService,omitempty"`
+					GrpcMethod       string            `json:"grpcMethod,omitempty"`
+					Body             *Any              `json:"body,omitempty"`
+					SourceApp        string            `json:"sourceApp,omitempty"`
+					SourceEnv        string            `json:"sourceEnv,omitempty"`
+					DestinationTopic string            `json:"destinationTopic,omitempty"`
+					Timestamp        *time.Time        `json:"timestamp,omitempty"`
+					Headers          map[string]string `json:"headers,omitempty"`
+					Request          *Message_Request  `json:"request,omitempty"`
+					Reply            *Message_Reply    `json:"reply,omitempty"`
+				*/
 				return nil
 			},
 		}
@@ -248,6 +290,13 @@ func runDanteLs(ctx context.Context, cfg struct {
 				fmt.Printf("%s\n", buff.String())
 
 				newVersion.Message = &messaging.Message{
+					MessageId:   state.Data.CurrentVersion.Message.MessageId,
+					SourceApp:   state.Data.CurrentVersion.Message.SourceApp,
+					SourceEnv:   state.Data.CurrentVersion.Message.SourceEnv,
+					GrpcMethod:  state.Data.CurrentVersion.Message.GrpcMethod,
+					GrpcService: state.Data.CurrentVersion.Message.GrpcService,
+					Headers:     state.Data.CurrentVersion.Message.Headers,
+
 					Body: &messaging.Any{
 						Value:    []byte(newBody),
 						TypeUrl:  state.Data.CurrentVersion.Message.Body.TypeUrl,
