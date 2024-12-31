@@ -120,6 +120,7 @@ func runDanteLs(ctx context.Context, cfg struct {
 				}
 				newID := uuid.NewString()
 				newVersion.VersionId = newID
+
 				res, err := commandClient.UpdateDeadMessage(ctx, &dante.UpdateDeadMessageRequest{
 					MessageId:         state.MessageId,
 					ReplacesVersionId: state.Data.CurrentVersion.VersionId,
@@ -244,8 +245,6 @@ func runDanteLs(ctx context.Context, cfg struct {
 				if err := json.Indent(buff, []byte(newBody), "  ", "  "); err != nil {
 					return fmt.Errorf("indent body: %w", err)
 				}
-				fmt.Printf("New Body\n")
-				fmt.Printf("%s\n", buff.String())
 
 				newVersion.Message = &messaging.Message{
 					Body: &messaging.Any{
@@ -253,6 +252,9 @@ func runDanteLs(ctx context.Context, cfg struct {
 						TypeUrl:  state.Data.CurrentVersion.Message.Body.TypeUrl,
 						Encoding: state.Data.CurrentVersion.Message.Body.Encoding,
 					},
+					MessageId:   state.Data.CurrentVersion.Message.MessageId,
+					GrpcService: state.Data.CurrentVersion.Message.GrpcService,
+					GrpcMethod:  state.Data.CurrentVersion.Message.GrpcMethod,
 				}
 				hasMods = true
 				return nil
