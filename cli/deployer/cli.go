@@ -129,6 +129,8 @@ func runTrigger(ctx context.Context, cfg struct {
 	Import  bool   `flag:"import"`
 
 	DBOnly            bool `flag:"db-only"`
+	InfraOnly         bool `flag:"infra-only"`
+	DBReset           bool `flag:"db-reset"`
 	Quick             bool `flag:"quick"`
 	RotateCredentials bool `flag:"rotate-creds"`
 }) error {
@@ -148,6 +150,7 @@ func runTrigger(ctx context.Context, cfg struct {
 			QuickMode:         cfg.Quick,
 			RotateCredentials: cfg.RotateCredentials,
 			DbOnly:            cfg.DBOnly,
+			InfraOnly:         cfg.InfraOnly,
 			ImportResources:   cfg.Import,
 		},
 	}

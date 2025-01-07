@@ -5,6 +5,18 @@ package drss
 
 import ()
 
+// StepStatus Proto Enum: j5.drss.v1.StepStatus
+type StepStatus string
+
+const (
+	StepStatus_UNSPECIFIED StepStatus = "UNSPECIFIED"
+	StepStatus_BLOCKED     StepStatus = "BLOCKED"
+	StepStatus_READY       StepStatus = "READY"
+	StepStatus_ACTIVE      StepStatus = "ACTIVE"
+	StepStatus_DONE        StepStatus = "DONE"
+	StepStatus_FAILED      StepStatus = "FAILED"
+)
+
 // StepMeta Proto: StepMeta
 type StepMeta struct {
 	StepId    string   `json:"stepId,omitempty"`
@@ -20,15 +32,3 @@ type StepResult struct {
 	Status string  `json:"status,omitempty"`
 	Error  *string `json:"error,omitempty"`
 }
-
-// StepStatus Proto Enum: j5.drss.v1.StepStatus
-type StepStatus string
-
-const (
-	StepStatus_UNSPECIFIED StepStatus = "UNSPECIFIED"
-	StepStatus_BLOCKED     StepStatus = "BLOCKED"
-	StepStatus_READY       StepStatus = "READY"
-	StepStatus_ACTIVE      StepStatus = "ACTIVE"
-	StepStatus_DONE        StepStatus = "DONE"
-	StepStatus_FAILED      StepStatus = "FAILED"
-)

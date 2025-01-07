@@ -39,10 +39,38 @@ func (s Filter) Type() interface{} {
 	return nil
 }
 
-// PageRequest Proto: PageRequest
-type PageRequest struct {
-	Token    *string `json:"token,omitempty"`
-	PageSize *int64  `json:"pageSize,omitempty"`
+// And Proto: And
+type And struct {
+	Filters []*Filter `json:"filters,omitempty"`
+}
+
+// PageResponse Proto: PageResponse
+type PageResponse struct {
+	NextToken *string `json:"nextToken,omitempty"`
+}
+
+// Search Proto: Search
+type Search struct {
+	Field string `json:"field,omitempty"`
+	Value string `json:"value,omitempty"`
+}
+
+// Sort Proto: Sort
+type Sort struct {
+	Field      string `json:"field,omitempty"`
+	Descending bool   `json:"descending,omitempty"`
+}
+
+// Range Proto: Range
+type Range struct {
+	Min string `json:"min,omitempty"`
+	Max string `json:"max,omitempty"`
+}
+
+// FieldType Proto: FieldType
+type FieldType struct {
+	Value string `json:"value,omitempty"`
+	Range *Range `json:"range,omitempty"`
 }
 
 // QueryRequest Proto: QueryRequest
@@ -52,27 +80,10 @@ type QueryRequest struct {
 	Filters  []*Filter `json:"filters,omitempty"`
 }
 
-// Field Proto: Field
-type Field struct {
-	Name string     `json:"name,omitempty"`
-	Type *FieldType `json:"type"`
-}
-
-// Range Proto: Range
-type Range struct {
-	Min string `json:"min,omitempty"`
-	Max string `json:"max,omitempty"`
-}
-
-// Search Proto: Search
-type Search struct {
-	Field string `json:"field,omitempty"`
-	Value string `json:"value,omitempty"`
-}
-
-// And Proto: And
-type And struct {
-	Filters []*Filter `json:"filters,omitempty"`
+// PageRequest Proto: PageRequest
+type PageRequest struct {
+	Token    *string `json:"token,omitempty"`
+	PageSize *int64  `json:"pageSize,omitempty"`
 }
 
 // Or Proto: Or
@@ -80,19 +91,8 @@ type Or struct {
 	Filters []*Filter `json:"filters,omitempty"`
 }
 
-// PageResponse Proto: PageResponse
-type PageResponse struct {
-	NextToken *string `json:"nextToken,omitempty"`
-}
-
-// Sort Proto: Sort
-type Sort struct {
-	Field      string `json:"field,omitempty"`
-	Descending bool   `json:"descending,omitempty"`
-}
-
-// FieldType Proto: FieldType
-type FieldType struct {
-	Value string `json:"value,omitempty"`
-	Range *Range `json:"range,omitempty"`
+// Field Proto: Field
+type Field struct {
+	Name string     `json:"name,omitempty"`
+	Type *FieldType `json:"type"`
 }
