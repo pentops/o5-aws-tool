@@ -7,10 +7,19 @@ import (
 	time "time"
 )
 
-// Infra Proto: Infra
-type Infra struct {
-	Type     string            `json:"type,omitempty"`
-	Metadata map[string]string `json:"metadata,omitempty"`
+// DeadMessage Proto: DeadMessage
+type DeadMessage struct {
+	DeathId    string   `json:"deathId,omitempty"`
+	HandlerApp string   `json:"handlerApp,omitempty"`
+	HandlerEnv string   `json:"handlerEnv,omitempty"`
+	Message    *Message `json:"message,omitempty"`
+	Problem    *Problem `json:"problem,omitempty"`
+	Infra      *Infra   `json:"infra,omitempty"`
+}
+
+// Message_Reply Proto: Message_Reply
+type Message_Reply struct {
+	ReplyTo string `json:"replyTo,omitempty"`
 }
 
 // Problem_UnhandledError Proto: Problem_UnhandledError
@@ -18,8 +27,30 @@ type Problem_UnhandledError struct {
 	Error string `json:"error,omitempty"`
 }
 
-// Message_Reply Proto: Message_Reply
-type Message_Reply struct {
+// Any Proto: Any
+type Any struct {
+	TypeUrl  string       `json:"typeUrl,omitempty"`
+	Value    []byte       `json:"value,omitempty"`
+	Encoding WireEncoding `json:"encoding,omitempty"`
+}
+
+// Message Proto: Message
+type Message struct {
+	MessageId        string            `json:"messageId,omitempty"`
+	GrpcService      string            `json:"grpcService,omitempty"`
+	GrpcMethod       string            `json:"grpcMethod,omitempty"`
+	Body             *Any              `json:"body,omitempty"`
+	SourceApp        string            `json:"sourceApp,omitempty"`
+	SourceEnv        string            `json:"sourceEnv,omitempty"`
+	DestinationTopic string            `json:"destinationTopic,omitempty"`
+	Timestamp        *time.Time        `json:"timestamp,omitempty"`
+	Headers          map[string]string `json:"headers,omitempty"`
+	Request          *Message_Request  `json:"request,omitempty"`
+	Reply            *Message_Reply    `json:"reply,omitempty"`
+}
+
+// Message_Request Proto: Message_Request
+type Message_Request struct {
 	ReplyTo string `json:"replyTo,omitempty"`
 }
 
@@ -52,39 +83,8 @@ const (
 	WireEncoding_RAW         WireEncoding = "RAW"
 )
 
-// Message_Request Proto: Message_Request
-type Message_Request struct {
-	ReplyTo string `json:"replyTo,omitempty"`
-}
-
-// DeadMessage Proto: DeadMessage
-type DeadMessage struct {
-	DeathId    string   `json:"deathId,omitempty"`
-	HandlerApp string   `json:"handlerApp,omitempty"`
-	HandlerEnv string   `json:"handlerEnv,omitempty"`
-	Message    *Message `json:"message,omitempty"`
-	Problem    *Problem `json:"problem,omitempty"`
-	Infra      *Infra   `json:"infra,omitempty"`
-}
-
-// Message Proto: Message
-type Message struct {
-	MessageId        string            `json:"messageId,omitempty"`
-	GrpcService      string            `json:"grpcService,omitempty"`
-	GrpcMethod       string            `json:"grpcMethod,omitempty"`
-	Body             *Any              `json:"body,omitempty"`
-	SourceApp        string            `json:"sourceApp,omitempty"`
-	SourceEnv        string            `json:"sourceEnv,omitempty"`
-	DestinationTopic string            `json:"destinationTopic,omitempty"`
-	Timestamp        *time.Time        `json:"timestamp,omitempty"`
-	Headers          map[string]string `json:"headers,omitempty"`
-	Request          *Message_Request  `json:"request,omitempty"`
-	Reply            *Message_Reply    `json:"reply,omitempty"`
-}
-
-// Any Proto: Any
-type Any struct {
-	TypeUrl  string `json:"typeUrl,omitempty"`
-	Value    []byte `json:"value,omitempty"`
-	Encoding string `json:"encoding,omitempty"`
+// Infra Proto: Infra
+type Infra struct {
+	Type     string            `json:"type,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
 }

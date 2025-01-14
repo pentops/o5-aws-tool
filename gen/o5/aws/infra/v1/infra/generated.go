@@ -5,26 +5,6 @@ package infra
 
 import ()
 
-// RDSHostType_SecretsManager Proto: RDSHostType_SecretsManager
-type RDSHostType_SecretsManager struct {
-	SecretName string `json:"secretName,omitempty"`
-}
-
-// ECSTaskNetworkType_AWSVPC Proto: ECSTaskNetworkType_AWSVPC
-type ECSTaskNetworkType_AWSVPC struct {
-	SecurityGroups []string `json:"securityGroups,omitempty"`
-	Subnets        []string `json:"subnets,omitempty"`
-}
-
-// AuroraConnection Proto: AuroraConnection
-type AuroraConnection struct {
-	Endpoint   string `json:"endpoint,omitempty"`
-	Port       int32  `json:"port,omitempty"`
-	DbUser     string `json:"dbUser,omitempty"`
-	DbName     string `json:"dbName,omitempty"`
-	Identifier string `json:"identifier,omitempty"`
-}
-
 // ECSTaskNetworkType Proto Oneof: o5.aws.infra.v1.ECSTaskNetworkType
 type ECSTaskNetworkType struct {
 	J5TypeKey string                     `json:"!type,omitempty"`
@@ -72,6 +52,20 @@ func (s RDSHostType) Type() interface{} {
 	return nil
 }
 
+// RDSHostType_SecretsManager Proto: RDSHostType_SecretsManager
+type RDSHostType_SecretsManager struct {
+	SecretName string `json:"secretName,omitempty"`
+}
+
+// AuroraConnection Proto: AuroraConnection
+type AuroraConnection struct {
+	Endpoint   string `json:"endpoint,omitempty"`
+	Port       int32  `json:"port,omitempty"`
+	DbUser     string `json:"dbUser,omitempty"`
+	DbName     string `json:"dbName,omitempty"`
+	Identifier string `json:"identifier,omitempty"`
+}
+
 // ECSTaskContext Proto: ECSTaskContext
 type ECSTaskContext struct {
 	Cluster string              `json:"cluster,omitempty"`
@@ -81,4 +75,10 @@ type ECSTaskContext struct {
 // RDSHostType_Aurora Proto: RDSHostType_Aurora
 type RDSHostType_Aurora struct {
 	Conn *AuroraConnection `json:"conn,omitempty"`
+}
+
+// ECSTaskNetworkType_AWSVPC Proto: ECSTaskNetworkType_AWSVPC
+type ECSTaskNetworkType_AWSVPC struct {
+	SecurityGroups []string `json:"securityGroups,omitempty"`
+	Subnets        []string `json:"subnets,omitempty"`
 }

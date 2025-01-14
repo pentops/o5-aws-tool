@@ -23,6 +23,7 @@ require (
 	github.com/pentops/log.go v0.0.0-20241106053730-7ac2afa77d54
 	github.com/pentops/o5-messaging v0.0.0-20241225175229-572d50427290
 	github.com/pentops/runner v0.0.0-20241117231504-8174ef5b83e7
+	golang.org/x/sync v0.9.0
 	google.golang.org/protobuf v1.35.1
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -47,9 +48,9 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/pentops/j5 v0.0.0-20241211232443-9c8294d87ac9 // indirect
+	github.com/pentops/j5 v0.0.0-20250110185058-842704b84a3e // indirect
+	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	golang.org/x/net v0.30.0 // indirect
-	golang.org/x/sync v0.9.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241021214115-324edc3d5d38 // indirect

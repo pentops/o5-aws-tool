@@ -4,13 +4,16 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/pentops/o5-aws-tool/gen/j5/drss/v1/drss"
 	"github.com/pentops/o5-aws-tool/gen/j5/list/v1/list"
 	"github.com/pentops/o5-aws-tool/gen/o5/aws/deployer/v1/deployer"
 	"github.com/pentops/o5-aws-tool/libo5"
 	"github.com/pentops/runner/commander"
+	"golang.org/x/sync/errgroup"
 )
 
 func runDeployment(ctx context.Context, args struct {
@@ -55,14 +58,14 @@ func deploymentTerminateCommand(deploymentID string) commander.Runnable {
 	})
 }
 
-var stepStatusColor = map[string]color.Attribute{
+var stepStatusColor = map[drss.StepStatus]color.Attribute{
 	"DONE":    color.FgGreen,
 	"ACTIVE":  color.FgBlue,
 	"BLOCKED": color.FgYellow,
 	"FAILED":  color.FgRed,
 }
 
-var deploymentStatusColor = map[string]color.Attribute{
+var deploymentStatusColor = map[deployer.DeploymentStatus]color.Attribute{
 	"RUNNING":    color.FgBlue,
 	"TERMINATED": color.FgRed,
 	"DONE":       color.FgGreen,
@@ -74,7 +77,10 @@ func deploymentStatusCommand(deploymentID string) commander.Runnable {
 		deploymentStatusConfig
 	}) error {
 		queryClient := deployer.NewDeploymentQueryService(cfg.APIClient())
-		return deploymentStatus(ctx, queryClient, deploymentID, cfg.deploymentStatusConfig)
+		return deploymentStatus(ctx, queryClient, deploymentID, &deploymentStatusContext{
+			cfg:       cfg.deploymentStatusConfig,
+			printLock: sync.Mutex{},
+		})
 	})
 }
 
@@ -83,67 +89,84 @@ type deploymentStatusConfig struct {
 	Verbose bool `flag:"verbose"`
 }
 
-func deploymentStatus(ctx context.Context, queryClient *deployer.DeploymentQueryService, deploymentID string, cfg deploymentStatusConfig) error {
+type deploymentStatusContext struct {
+	cfg       deploymentStatusConfig
+	noDots    bool
+	printLock sync.Mutex
+}
+
+func deploymentStatus(ctx context.Context, queryClient *deployer.DeploymentQueryService, id string, run *deploymentStatusContext) error {
 
 	lastLastEvent := uint64(999)
 	didDots := false
 	for {
 		res, err := queryClient.GetDeployment(ctx, &deployer.GetDeploymentRequest{
-			DeploymentId: deploymentID,
+			DeploymentId: id,
 		})
 		if err != nil {
 			return fmt.Errorf("get deployment: %w", err)
 		}
 
-		if lastLastEvent == res.State.Metadata.LastSequence {
-			didDots = true
-			fmt.Printf(".")
-			time.Sleep(time.Second)
-			continue
-		}
-		if didDots {
+		err = func() error {
+			run.printLock.Lock()
+			defer run.printLock.Unlock()
+
+			if lastLastEvent == res.State.Metadata.LastSequence {
+				didDots = true
+				if !run.noDots {
+					fmt.Printf(".")
+				}
+				time.Sleep(time.Second)
+				return nil
+			}
+			if didDots {
+				fmt.Println()
+				didDots = false
+			}
+
+			lastLastEvent = res.State.Metadata.LastSequence
+
+			fmt.Printf("DeploymentID: %s\n", res.State.DeploymentId)
+			fmt.Printf("Status: %s\n", res.State.Status)
+			fmt.Printf("\n")
+			stepMap := map[string]*deployer.DeploymentStep{}
+			for _, step := range res.State.Data.Steps {
+				stepMap[step.Meta.StepId] = step
+			}
+
+			if err := listDeploymentEvents(ctx, queryClient, res.State); err != nil {
+				return err
+			}
+
+			steps := res.State.Data.Steps
 			fmt.Println()
-			didDots = false
-		}
+			sort.Sort(StepsByStatus(steps))
+			for _, step := range steps {
+				fmt.Printf("Step: %s\n", color.MagentaString(step.Meta.Name))
+				stepColor, ok := stepStatusColor[step.Meta.Status]
+				if !ok {
+					stepColor = color.FgWhite
+				}
+				fmt.Printf("  StepID: %s\n", step.Meta.StepId)
+				fmt.Printf("  Status: %s\n", color.New(stepColor).Sprint(step.Meta.Status))
+				if step.Meta.Error != nil {
+					fmt.Printf("  Error: %s\n", *step.Meta.Error)
+				}
+				for _, id := range step.Meta.DependsOn {
+					dep := stepMap[id]
+					if dep.Meta.Status != "DONE" {
+						fmt.Printf("  BlockedBy: %s (%s)\n", dep.Meta.Name, dep.Meta.Status)
+					}
+				}
 
-		lastLastEvent = res.State.Metadata.LastSequence
-
-		fmt.Printf("DeploymentID: %s\n", res.State.DeploymentId)
-		fmt.Printf("Status: %s\n", res.State.Status)
-		fmt.Printf("\n")
-		stepMap := map[string]*deployer.DeploymentStep{}
-		for _, step := range res.State.Data.Steps {
-			stepMap[step.Meta.StepId] = step
-		}
-
-		if err := listDeploymentEvents(ctx, queryClient, res.State); err != nil {
+				fmt.Printf("\n")
+			}
+			return nil
+		}()
+		if err != nil {
 			return err
 		}
-
-		steps := res.State.Data.Steps
-		fmt.Println()
-		sort.Sort(StepsByStatus(steps))
-		for _, step := range steps {
-			fmt.Printf("Step: %s\n", color.MagentaString(step.Meta.Name))
-			stepColor, ok := stepStatusColor[step.Meta.Status]
-			if !ok {
-				stepColor = color.FgWhite
-			}
-			fmt.Printf("  StepID: %s\n", step.Meta.StepId)
-			fmt.Printf("  Status: %s\n", color.New(stepColor).Sprint(step.Meta.Status))
-			if step.Meta.Error != nil {
-				fmt.Printf("  Error: %s\n", *step.Meta.Error)
-			}
-			for _, id := range step.Meta.DependsOn {
-				dep := stepMap[id]
-				if dep.Meta.Status != "DONE" {
-					fmt.Printf("  BlockedBy: %s (%s)\n", dep.Meta.Name, dep.Meta.Status)
-				}
-			}
-
-			fmt.Printf("\n")
-		}
-		if !cfg.Wait {
+		if !run.cfg.Wait {
 			break
 		}
 
@@ -247,6 +270,7 @@ func runDeployments(ctx context.Context, cfg struct {
 
 	for _, foundDeployment := range foundDeployments {
 		if !cfg.All && foundDeployment.Status != "RUNNING" && foundDeployment.Status != "QUEUED" {
+
 			continue
 		}
 
@@ -260,11 +284,6 @@ func runDeployments(ctx context.Context, cfg struct {
 
 	if cfg.Q {
 		return nil
-	}
-
-	if len(runningDeployments) == 0 {
-		// latest
-		runningDeployments = foundDeployments[:1]
 	}
 
 	for _, foundDeployment := range runningDeployments {
@@ -287,11 +306,30 @@ func runDeployments(ctx context.Context, cfg struct {
 		return nil
 	}
 
-	if len(runningDeployments) > 1 {
-		return fmt.Errorf("more than one deployment found")
+	ccc := &deploymentStatusContext{
+		cfg:    cfg.deploymentStatusConfig,
+		noDots: false,
+	}
+	if len(runningDeployments) < 1 {
+		fmt.Printf("No Deployments")
+		return nil
 	}
 
-	return deploymentStatus(ctx, queryClient, foundDeployments[0].DeploymentId, cfg.deploymentStatusConfig)
+	if len(runningDeployments) > 1 {
+		ccc.noDots = true
+
+		eg := &errgroup.Group{}
+
+		for _, deployment := range runningDeployments {
+			deployment := deployment
+			eg.Go(func() error {
+				return deploymentStatus(ctx, queryClient, deployment.DeploymentId, ccc)
+			})
+		}
+
+	}
+
+	return deploymentStatus(ctx, queryClient, runningDeployments[0].DeploymentId, ccc)
 
 }
 

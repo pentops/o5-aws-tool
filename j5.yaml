@@ -11,7 +11,6 @@ generate:
       - registry:
           owner: pentops
           name: o5-deploy
-          reference: refactor
 
       - registry:
           owner: pentops
@@ -29,6 +28,6 @@ plugins:
   - name: go
     type: PLUGIN_J5_CLIENT
     docker:
-      image: ghcr.io/pentops/j5-gen-go-client:ce502ddb23f59b3371c3a3772c4bfec754c66d91
+      image: ghcr.io/pentops/j5-gen-go-client:c637ad1639ee7d83ee3c885de306a1a7c1478db1
 
 

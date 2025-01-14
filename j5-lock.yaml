@@ -2,6 +2,6 @@ inputs:
     - name: registry/pentops/builds
       version: c9e024d97dbc889a16b3f096339f97af68308a07
     - name: registry/pentops/o5-deploy
-      version: 127c741c200da1f5e854b221cc0e1a652ba1a494
+      version: a444f701382a51c4823952f48159a4659ed61455
     - name: registry/pentops/dante
       version: 38311390bc0583e2b7273eb739c14a85e55aabd2

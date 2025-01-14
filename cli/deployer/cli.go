@@ -152,6 +152,7 @@ func runTrigger(ctx context.Context, cfg struct {
 			DbOnly:            cfg.DBOnly,
 			InfraOnly:         cfg.InfraOnly,
 			ImportResources:   cfg.Import,
+			RecreateDatabase:  cfg.DBReset,
 		},
 	}
 
