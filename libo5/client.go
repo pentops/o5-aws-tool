@@ -120,7 +120,7 @@ func (c *API) Request(ctx context.Context, method, path string, req, res interfa
 		log.WithFields(ctx, map[string]interface{}{
 			"status": httpRes.StatusCode,
 			"error":  err,
-		}).Error("bad JSON")
+		}).Error("bad JSON response")
 		fmt.Print("\n====\n" + string(resBody) + "\n====\n")
 		return fmt.Errorf("marshal response: %w", err)
 	}

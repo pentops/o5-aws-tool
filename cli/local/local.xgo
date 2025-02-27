@@ -21,8 +21,8 @@ import (
 	"github.com/pentops/o5-deploy-aws/cf/app"
 	"github.com/pentops/o5-deploy-aws/deployer"
 	"github.com/pentops/o5-deploy-aws/protoread"
-	"github.com/pentops/o5-go/application/v1/application_pb"
-	"github.com/pentops/o5-go/environment/v1/environment_pb"
+	"github.com/pentops/o5-aws-tool/gen/o5/application/v1/application"
+	"github.com/pentops/o5-aws-tool/gen/o5/environment/v1/environment"
 	"github.com/pentops/o5-runtime-sidecar/entrypoint"
 	"github.com/pentops/runner"
 )
