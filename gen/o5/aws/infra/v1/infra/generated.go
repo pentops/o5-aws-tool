@@ -5,24 +5,19 @@ package infra
 
 import ()
 
-// ECSTaskNetworkType Proto Oneof: o5.aws.infra.v1.ECSTaskNetworkType
-type ECSTaskNetworkType struct {
-	J5TypeKey string                     `json:"!type,omitempty"`
-	Awsvpc    *ECSTaskNetworkType_AWSVPC `json:"awsvpc,omitempty"`
+// AuroraConnection Proto: AuroraConnection
+type AuroraConnection struct {
+	Endpoint   string `json:"endpoint,omitempty"`
+	Port       int32  `json:"port,omitempty"`
+	DbUser     string `json:"dbUser,omitempty"`
+	DbName     string `json:"dbName,omitempty"`
+	Identifier string `json:"identifier,omitempty"`
 }
 
-func (s ECSTaskNetworkType) OneofKey() string {
-	if s.Awsvpc != nil {
-		return "awsvpc"
-	}
-	return ""
-}
-
-func (s ECSTaskNetworkType) Type() interface{} {
-	if s.Awsvpc != nil {
-		return s.Awsvpc
-	}
-	return nil
+// ECSTaskContext Proto: ECSTaskContext
+type ECSTaskContext struct {
+	Cluster string              `json:"cluster,omitempty"`
+	Network *ECSTaskNetworkType `json:"network,omitempty"`
 }
 
 // RDSHostType Proto Oneof: o5.aws.infra.v1.RDSHostType
@@ -52,24 +47,30 @@ func (s RDSHostType) Type() interface{} {
 	return nil
 }
 
-// RDSHostType_SecretsManager Proto: RDSHostType_SecretsManager
-type RDSHostType_SecretsManager struct {
-	SecretName string `json:"secretName,omitempty"`
+// ECSTaskNetworkType_AWSVPC Proto: ECSTaskNetworkType_AWSVPC
+type ECSTaskNetworkType_AWSVPC struct {
+	SecurityGroups []string `json:"securityGroups,omitempty"`
+	Subnets        []string `json:"subnets,omitempty"`
 }
 
-// AuroraConnection Proto: AuroraConnection
-type AuroraConnection struct {
-	Endpoint   string `json:"endpoint,omitempty"`
-	Port       int32  `json:"port,omitempty"`
-	DbUser     string `json:"dbUser,omitempty"`
-	DbName     string `json:"dbName,omitempty"`
-	Identifier string `json:"identifier,omitempty"`
+// ECSTaskNetworkType Proto Oneof: o5.aws.infra.v1.ECSTaskNetworkType
+type ECSTaskNetworkType struct {
+	J5TypeKey string                     `json:"!type,omitempty"`
+	Awsvpc    *ECSTaskNetworkType_AWSVPC `json:"awsvpc,omitempty"`
 }
 
-// ECSTaskContext Proto: ECSTaskContext
-type ECSTaskContext struct {
-	Cluster string              `json:"cluster,omitempty"`
-	Network *ECSTaskNetworkType `json:"network,omitempty"`
+func (s ECSTaskNetworkType) OneofKey() string {
+	if s.Awsvpc != nil {
+		return "awsvpc"
+	}
+	return ""
+}
+
+func (s ECSTaskNetworkType) Type() interface{} {
+	if s.Awsvpc != nil {
+		return s.Awsvpc
+	}
+	return nil
 }
 
 // RDSHostType_Aurora Proto: RDSHostType_Aurora
@@ -77,8 +78,7 @@ type RDSHostType_Aurora struct {
 	Conn *AuroraConnection `json:"conn,omitempty"`
 }
 
-// ECSTaskNetworkType_AWSVPC Proto: ECSTaskNetworkType_AWSVPC
-type ECSTaskNetworkType_AWSVPC struct {
-	SecurityGroups []string `json:"securityGroups,omitempty"`
-	Subnets        []string `json:"subnets,omitempty"`
+// RDSHostType_SecretsManager Proto: RDSHostType_SecretsManager
+type RDSHostType_SecretsManager struct {
+	SecretName string `json:"secretName,omitempty"`
 }

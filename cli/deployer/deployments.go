@@ -200,6 +200,7 @@ func runDeployments(ctx context.Context, cfg struct {
 	EnvName string `env:"ENV_NAME" flag:"env" default:""`
 	Version string `env:"VERSION" flag:"version" default:""`
 	All     bool   `flag:"all" description:"Include inactive"`
+	Recent  bool   `flag:"recent" description:"Include inactive < 1 hour"`
 
 	Q bool `flag:"q" help:"output only the IDs"`
 	deploymentStatusConfig
@@ -245,6 +246,21 @@ func runDeployments(ctx context.Context, cfg struct {
 				},
 			},
 		})
+	}
+
+	if cfg.Recent {
+		query.Filters = append(query.Filters, &list.Filter{
+			Field: &list.Field{
+				Name: "metadata.createdAt",
+				Type: &list.FieldType{
+					Range: &list.Range{
+						Min: time.Now().Add(-5 * time.Hour).Format(time.RFC3339),
+						Max: time.Now().Add(time.Minute).Format(time.RFC3339),
+					},
+				},
+			},
+		})
+		cfg.All = true
 	}
 
 	if err := libo5.Paged(ctx,
@@ -298,6 +314,7 @@ func runDeployments(ctx context.Context, cfg struct {
 		fmt.Printf("  AppName: %s\n", foundDeployment.Data.Spec.AppName)
 		fmt.Printf("  EnvName: %s\n", foundDeployment.Data.Spec.EnvironmentName)
 		fmt.Printf("  Version: %s\n", foundDeployment.Data.Spec.Version)
+		fmt.Printf("  Started: %s\n", foundDeployment.Metadata.CreatedAt.Format(time.RFC3339))
 		fmt.Printf("\n")
 
 	}

@@ -8,11 +8,30 @@ import (
 	time "time"
 )
 
+// PSMEventCause Proto: PSMEventCause
+type PSMEventCause struct {
+	EventId      string `json:"eventId,omitempty"`
+	StateMachine string `json:"stateMachine,omitempty"`
+}
+
+// ExternalEventCause Proto: ExternalEventCause
+type ExternalEventCause struct {
+	SystemName string  `json:"systemName,omitempty"`
+	EventName  string  `json:"eventName,omitempty"`
+	ExternalId *string `json:"externalId,omitempty"`
+}
+
+// ReplyCause Proto: ReplyCause
+type ReplyCause struct {
+	Request *PSMEventCause `json:"request,omitempty"`
+	Async   bool           `json:"async,omitempty"`
+}
+
 // StateMetadata Proto: StateMetadata
 type StateMetadata struct {
 	CreatedAt    *time.Time `json:"createdAt,omitempty"`
 	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
-	LastSequence uint64     `json:"lastSequence,omitempty"`
+	LastSequence uint64     `json:"lastSequence,omitempty,string"`
 }
 
 // Cause Proto Oneof: j5.state.v1.Cause
@@ -56,29 +75,10 @@ func (s Cause) Type() interface{} {
 	return nil
 }
 
-// ReplyCause Proto: ReplyCause
-type ReplyCause struct {
-	Request *PSMEventCause `json:"request,omitempty"`
-	Async   bool           `json:"async,omitempty"`
-}
-
 // EventMetadata Proto: EventMetadata
 type EventMetadata struct {
 	EventId   string     `json:"eventId,omitempty"`
-	Sequence  uint64     `json:"sequence,omitempty"`
+	Sequence  uint64     `json:"sequence,omitempty,string"`
 	Timestamp *time.Time `json:"timestamp"`
 	Cause     *Cause     `json:"cause,omitempty"`
-}
-
-// PSMEventCause Proto: PSMEventCause
-type PSMEventCause struct {
-	EventId      string `json:"eventId,omitempty"`
-	StateMachine string `json:"stateMachine,omitempty"`
-}
-
-// ExternalEventCause Proto: ExternalEventCause
-type ExternalEventCause struct {
-	SystemName string  `json:"systemName,omitempty"`
-	EventName  string  `json:"eventName,omitempty"`
-	ExternalId *string `json:"externalId,omitempty"`
 }

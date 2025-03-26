@@ -14,13 +14,6 @@ type StepMeta struct {
 	DependsOn []string   `json:"dependsOn,omitempty"`
 }
 
-// StepResult Proto: StepResult
-type StepResult struct {
-	StepId string     `json:"stepId,omitempty"`
-	Status StepStatus `json:"status,omitempty"`
-	Error  *string    `json:"error,omitempty"`
-}
-
 // StepStatus Proto Enum: j5.drss.v1.StepStatus
 type StepStatus string
 
@@ -32,3 +25,10 @@ const (
 	StepStatus_DONE        StepStatus = "DONE"
 	StepStatus_FAILED      StepStatus = "FAILED"
 )
+
+// StepResult Proto: StepResult
+type StepResult struct {
+	StepId string     `json:"stepId,omitempty"`
+	Status StepStatus `json:"status,omitempty"`
+	Error  *string    `json:"error,omitempty"`
+}

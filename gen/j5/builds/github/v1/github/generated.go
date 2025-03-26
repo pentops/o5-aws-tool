@@ -114,7 +114,7 @@ func (s RepoQueryService) ListRepoEvents(ctx context.Context, req *ListRepoEvent
 // GetRepoRequest
 type GetRepoRequest struct {
 	Owner string `json:"-" path:"owner"`
-	Name  string `path:"name" json:"-"`
+	Name  string `json:"-" path:"name"`
 }
 
 func (s GetRepoRequest) QueryParameters() (url.Values, error) {
@@ -319,13 +319,41 @@ type TriggerResponse struct {
 type DeployTargetType_J5Build struct {
 }
 
-// RepoState Proto: RepoState
-type RepoState struct {
-	Metadata *state.StateMetadata `json:"metadata"`
+// DeployTargetType_O5Build Proto: DeployTargetType_O5Build
+type DeployTargetType_O5Build struct {
+	Environment string `json:"environment,omitempty"`
+}
+
+// RepoEventType_ConfigureBranch Proto: RepoEventType_ConfigureBranch
+type RepoEventType_ConfigureBranch struct {
+	Branch *Branch `json:"branch"`
+}
+
+// RepoEvent Proto: RepoEvent
+type RepoEvent struct {
+	Metadata *state.EventMetadata `json:"metadata"`
 	Owner    string               `json:"owner"`
 	Name     string               `json:"name"`
-	Status   RepoStatus           `json:"status,omitempty"`
-	Data     *RepoStateData       `json:"data,omitempty"`
+	Event    *RepoEventType       `json:"event"`
+}
+
+// RepoEventType_Configure Proto: RepoEventType_Configure
+type RepoEventType_Configure struct {
+	ChecksEnabled bool      `json:"checksEnabled,omitempty"`
+	Merge         bool      `json:"merge,omitempty"`
+	Branches      []*Branch `json:"branches,omitempty"`
+}
+
+// Branch Proto: Branch
+type Branch struct {
+	BranchName    string              `json:"branchName"`
+	DeployTargets []*DeployTargetType `json:"deployTargets,omitempty"`
+}
+
+// RepoStateData Proto: RepoStateData
+type RepoStateData struct {
+	ChecksEnabled bool      `json:"checksEnabled,omitempty"`
+	Branches      []*Branch `json:"branches,omitempty"`
 }
 
 // DeployTargetType Proto Oneof: j5.builds.github.v1.DeployTargetType
@@ -353,6 +381,26 @@ func (s DeployTargetType) Type() interface{} {
 		return s.O5Build
 	}
 	return nil
+}
+
+// RepoEventType_RemoveBranch Proto: RepoEventType_RemoveBranch
+type RepoEventType_RemoveBranch struct {
+	BranchName string `json:"branchName"`
+}
+
+// RepoKeys Proto: RepoKeys
+type RepoKeys struct {
+	Owner string `json:"owner"`
+	Name  string `json:"name"`
+}
+
+// RepoState Proto: RepoState
+type RepoState struct {
+	Metadata *state.StateMetadata `json:"metadata"`
+	Owner    string               `json:"owner"`
+	Name     string               `json:"name"`
+	Status   RepoStatus           `json:"status,omitempty"`
+	Data     *RepoStateData       `json:"data,omitempty"`
 }
 
 // RepoEventType Proto Oneof: j5.builds.github.v1.RepoEventType
@@ -387,54 +435,6 @@ func (s RepoEventType) Type() interface{} {
 		return s.RemoveBranch
 	}
 	return nil
-}
-
-// RepoEventType_RemoveBranch Proto: RepoEventType_RemoveBranch
-type RepoEventType_RemoveBranch struct {
-	BranchName string `json:"branchName"`
-}
-
-// Branch Proto: Branch
-type Branch struct {
-	BranchName    string              `json:"branchName"`
-	DeployTargets []*DeployTargetType `json:"deployTargets,omitempty"`
-}
-
-// RepoEventType_Configure Proto: RepoEventType_Configure
-type RepoEventType_Configure struct {
-	ChecksEnabled bool      `json:"checksEnabled,omitempty"`
-	Merge         bool      `json:"merge,omitempty"`
-	Branches      []*Branch `json:"branches,omitempty"`
-}
-
-// RepoEventType_ConfigureBranch Proto: RepoEventType_ConfigureBranch
-type RepoEventType_ConfigureBranch struct {
-	Branch *Branch `json:"branch"`
-}
-
-// RepoStateData Proto: RepoStateData
-type RepoStateData struct {
-	ChecksEnabled bool      `json:"checksEnabled,omitempty"`
-	Branches      []*Branch `json:"branches,omitempty"`
-}
-
-// RepoEvent Proto: RepoEvent
-type RepoEvent struct {
-	Metadata *state.EventMetadata `json:"metadata"`
-	Owner    string               `json:"owner"`
-	Name     string               `json:"name"`
-	Event    *RepoEventType       `json:"event"`
-}
-
-// RepoKeys Proto: RepoKeys
-type RepoKeys struct {
-	Owner string `json:"owner"`
-	Name  string `json:"name"`
-}
-
-// DeployTargetType_O5Build Proto: DeployTargetType_O5Build
-type DeployTargetType_O5Build struct {
-	Environment string `json:"environment,omitempty"`
 }
 
 // RepoStatus Proto Enum: j5.builds.github.v1.RepoStatus

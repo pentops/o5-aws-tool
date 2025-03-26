@@ -5,85 +5,9 @@ package application
 
 import ()
 
-// O5Var Proto Enum: o5.application.v1.O5Var
-type O5Var string
-
-const (
-	O5Var_UNSPECIFIED      O5Var = "UNSPECIFIED"
-	O5Var_ADAPTER_ENDPOINT O5Var = "ADAPTER_ENDPOINT"
-)
-
-// Secret Proto: Secret
-type Secret struct {
-	Name string `json:"name,omitempty"`
-}
-
-// RouteProtocol Proto Enum: o5.application.v1.RouteProtocol
-type RouteProtocol string
-
-const (
-	RouteProtocol_UNSPECIFIED RouteProtocol = "UNSPECIFIED"
-	RouteProtocol_HTTP        RouteProtocol = "HTTP"
-	RouteProtocol_GRPC        RouteProtocol = "GRPC"
-)
-
-// Database_Postgres Proto: Database_Postgres
-type Database_Postgres struct {
-	DbNameSuffix     string     `json:"dbNameSuffix,omitempty"`
-	DbName           string     `json:"dbName,omitempty"`
-	ServerGroup      string     `json:"serverGroup,omitempty"`
-	DbExtensions     []string   `json:"dbExtensions,omitempty"`
-	MigrateContainer *Container `json:"migrateContainer,omitempty"`
-	RunOutbox        bool       `json:"runOutbox,omitempty"`
-}
-
-// BlobstoreEnvVar Proto: BlobstoreEnvVar
-type BlobstoreEnvVar struct {
-	Name     string  `json:"name,omitempty"`
-	SubPath  *string `json:"subPath,omitempty"`
-	S3Direct bool    `json:"s3Direct,omitempty"`
-}
-
-// Runtime Proto: Runtime
-type Runtime struct {
-	Name             string          `json:"name,omitempty"`
-	DirectIngress    bool            `json:"directIngress,omitempty"`
-	Containers       []*Container    `json:"containers,omitempty"`
-	Routes           []*Route        `json:"routes,omitempty"`
-	Subscriptions    []*Subscription `json:"subscriptions,omitempty"`
-	WorkerConfig     *WorkerConfig   `json:"workerConfig,omitempty"`
-	NamedEnvPolicies []string        `json:"namedEnvPolicies,omitempty"`
-}
-
-// Demand Proto Enum: o5.application.v1.Demand
-type Demand string
-
-const (
-	Demand_UNSPECIFIED Demand = "UNSPECIFIED"
-	Demand_LIGHT       Demand = "LIGHT"
-	Demand_MEDIUM      Demand = "MEDIUM"
-	Demand_HEAVY       Demand = "HEAVY"
-)
-
-// RouteGroup Proto Enum: o5.application.v1.RouteGroup
-type RouteGroup string
-
-const (
-	RouteGroup_UNSPECIFIED RouteGroup = "UNSPECIFIED"
-	RouteGroup_FIRST       RouteGroup = "FIRST"
-	RouteGroup_NORMAL      RouteGroup = "NORMAL"
-	RouteGroup_FALLBACK    RouteGroup = "FALLBACK"
-)
-
-// Container Proto: Container
-type Container struct {
-	Name              string                 `json:"name,omitempty"`
-	ImageUrl          string                 `json:"imageUrl,omitempty"`
-	Image             *Container_Image       `json:"image,omitempty"`
-	Command           []string               `json:"command,omitempty"`
-	Demand            Demand                 `json:"demand,omitempty"`
-	EnvVars           []*EnvironmentVariable `json:"envVars,omitempty"`
-	MountDockerSocket bool                   `json:"mountDockerSocket,omitempty"`
+// DeploymentConfig Proto: DeploymentConfig
+type DeploymentConfig struct {
+	QuickMode bool `json:"quickMode,omitempty"`
 }
 
 // Route Proto: Route
@@ -93,35 +17,21 @@ type Route struct {
 	Protocol        RouteProtocol `json:"protocol,omitempty"`
 	TargetContainer string        `json:"targetContainer,omitempty"`
 	BypassIngress   bool          `json:"bypassIngress,omitempty"`
-	Port            int64         `json:"port,omitempty"`
+	Port            int64         `json:"port,omitempty,string"`
 	RouteGroup      RouteGroup    `json:"routeGroup,omitempty"`
 }
 
-// SecretEnvVar Proto: SecretEnvVar
-type SecretEnvVar struct {
-	SecretName string `json:"secretName,omitempty"`
-	JsonKey    string `json:"jsonKey,omitempty"`
+// Grant Proto: Grant
+type Grant struct {
+	Principal string `json:"principal,omitempty"`
 }
 
-// MapEnvVar Proto: MapEnvVar
-type MapEnvVar struct {
-}
-
-// Container_Image Proto: Container_Image
-type Container_Image struct {
-	Name     string  `json:"name,omitempty"`
-	Tag      *string `json:"tag,omitempty"`
-	Registry *string `json:"registry,omitempty"`
-}
-
-// FromEnvVar Proto: FromEnvVar
-type FromEnvVar struct {
-	Name string `json:"name,omitempty"`
-}
-
-// DeploymentConfig Proto: DeploymentConfig
-type DeploymentConfig struct {
-	QuickMode bool `json:"quickMode,omitempty"`
+// BlobstoreRef Proto: BlobstoreRef
+type BlobstoreRef struct {
+	ReadPermission  bool   `json:"readPermission,omitempty"`
+	WritePermission bool   `json:"writePermission,omitempty"`
+	Application     string `json:"application,omitempty"`
+	BucketName      string `json:"bucketName,omitempty"`
 }
 
 // Application Proto: Application
@@ -135,37 +45,37 @@ type Application struct {
 	DeploymentConfig *DeploymentConfig `json:"deploymentConfig,omitempty"`
 }
 
-// WorkerConfig Proto: WorkerConfig
-type WorkerConfig struct {
-	ReplayChance     int64 `json:"replayChance,omitempty"`
-	DeadletterChance int64 `json:"deadletterChance,omitempty"`
-	NoDeadletters    bool  `json:"noDeadletters,omitempty"`
-}
-
-// BlobstoreRef Proto: BlobstoreRef
-type BlobstoreRef struct {
-	ReadPermission  bool   `json:"readPermission,omitempty"`
-	WritePermission bool   `json:"writePermission,omitempty"`
-	Application     string `json:"application,omitempty"`
-	BucketName      string `json:"bucketName,omitempty"`
-}
-
-// Subscription Proto: Subscription
-type Subscription struct {
-	Name            string  `json:"name,omitempty"`
-	EnvName         *string `json:"envName,omitempty"`
-	TargetContainer string  `json:"targetContainer,omitempty"`
-	Port            int64   `json:"port,omitempty"`
-	GrpcMethod      *string `json:"grpcMethod,omitempty"`
-	IsReply         bool    `json:"isReply,omitempty"`
-	RawMessage      bool    `json:"rawMessage,omitempty"`
-	MetaInfraEvents bool    `json:"metaInfraEvents,omitempty"`
-}
-
 // DatabaseEnvVar Proto: DatabaseEnvVar
 type DatabaseEnvVar struct {
 	DatabaseName string `json:"databaseName,omitempty"`
 }
+
+// RouteGroup Proto Enum: o5.application.v1.RouteGroup
+type RouteGroup string
+
+const (
+	RouteGroup_UNSPECIFIED RouteGroup = "UNSPECIFIED"
+	RouteGroup_FIRST       RouteGroup = "FIRST"
+	RouteGroup_NORMAL      RouteGroup = "NORMAL"
+	RouteGroup_FALLBACK    RouteGroup = "FALLBACK"
+)
+
+// Container_Image Proto: Container_Image
+type Container_Image struct {
+	Name     string  `json:"name,omitempty"`
+	Tag      *string `json:"tag,omitempty"`
+	Registry *string `json:"registry,omitempty"`
+}
+
+// Demand Proto Enum: o5.application.v1.Demand
+type Demand string
+
+const (
+	Demand_UNSPECIFIED Demand = "UNSPECIFIED"
+	Demand_LIGHT       Demand = "LIGHT"
+	Demand_MEDIUM      Demand = "MEDIUM"
+	Demand_HEAVY       Demand = "HEAVY"
+)
 
 // EnvironmentVariable Proto: EnvironmentVariable
 type EnvironmentVariable struct {
@@ -179,10 +89,50 @@ type EnvironmentVariable struct {
 	O5        O5Var            `json:"o5,omitempty"`
 }
 
-// Database Proto: Database
-type Database struct {
-	Name     string             `json:"name,omitempty"`
-	Postgres *Database_Postgres `json:"postgres,omitempty"`
+// Target Proto: Target
+type Target struct {
+	Name string `json:"name,omitempty"`
+}
+
+// O5Var Proto Enum: o5.application.v1.O5Var
+type O5Var string
+
+const (
+	O5Var_UNSPECIFIED      O5Var = "UNSPECIFIED"
+	O5Var_ADAPTER_ENDPOINT O5Var = "ADAPTER_ENDPOINT"
+)
+
+// FromEnvVar Proto: FromEnvVar
+type FromEnvVar struct {
+	Name string `json:"name,omitempty"`
+}
+
+// Runtime Proto: Runtime
+type Runtime struct {
+	Name             string          `json:"name,omitempty"`
+	DirectIngress    bool            `json:"directIngress,omitempty"`
+	Containers       []*Container    `json:"containers,omitempty"`
+	Routes           []*Route        `json:"routes,omitempty"`
+	Subscriptions    []*Subscription `json:"subscriptions,omitempty"`
+	WorkerConfig     *WorkerConfig   `json:"workerConfig,omitempty"`
+	NamedEnvPolicies []string        `json:"namedEnvPolicies,omitempty"`
+}
+
+// WorkerConfig Proto: WorkerConfig
+type WorkerConfig struct {
+	ReplayChance     int64 `json:"replayChance,omitempty,string"`
+	DeadletterChance int64 `json:"deadletterChance,omitempty,string"`
+	NoDeadletters    bool  `json:"noDeadletters,omitempty"`
+}
+
+// Database_Postgres Proto: Database_Postgres
+type Database_Postgres struct {
+	DbNameSuffix     string     `json:"dbNameSuffix,omitempty"`
+	DbName           string     `json:"dbName,omitempty"`
+	ServerGroup      string     `json:"serverGroup,omitempty"`
+	DbExtensions     []string   `json:"dbExtensions,omitempty"`
+	MigrateContainer *Container `json:"migrateContainer,omitempty"`
+	RunOutbox        bool       `json:"runOutbox,omitempty"`
 }
 
 // Blobstore Proto: Blobstore
@@ -192,12 +142,62 @@ type Blobstore struct {
 	Ref    *BlobstoreRef `json:"ref,omitempty"`
 }
 
-// Target Proto: Target
-type Target struct {
+// Container Proto: Container
+type Container struct {
+	Name              string                 `json:"name,omitempty"`
+	ImageUrl          string                 `json:"imageUrl,omitempty"`
+	Image             *Container_Image       `json:"image,omitempty"`
+	Command           []string               `json:"command,omitempty"`
+	Demand            Demand                 `json:"demand,omitempty"`
+	EnvVars           []*EnvironmentVariable `json:"envVars,omitempty"`
+	MountDockerSocket bool                   `json:"mountDockerSocket,omitempty"`
+}
+
+// Subscription Proto: Subscription
+type Subscription struct {
+	Name            string  `json:"name,omitempty"`
+	EnvName         *string `json:"envName,omitempty"`
+	TargetContainer string  `json:"targetContainer,omitempty"`
+	Port            int64   `json:"port,omitempty,string"`
+	GrpcMethod      *string `json:"grpcMethod,omitempty"`
+	IsReply         bool    `json:"isReply,omitempty"`
+	RawMessage      bool    `json:"rawMessage,omitempty"`
+	MetaInfraEvents bool    `json:"metaInfraEvents,omitempty"`
+}
+
+// SecretEnvVar Proto: SecretEnvVar
+type SecretEnvVar struct {
+	SecretName string `json:"secretName,omitempty"`
+	JsonKey    string `json:"jsonKey,omitempty"`
+}
+
+// BlobstoreEnvVar Proto: BlobstoreEnvVar
+type BlobstoreEnvVar struct {
+	Name     string  `json:"name,omitempty"`
+	SubPath  *string `json:"subPath,omitempty"`
+	S3Direct bool    `json:"s3Direct,omitempty"`
+}
+
+// MapEnvVar Proto: MapEnvVar
+type MapEnvVar struct {
+}
+
+// RouteProtocol Proto Enum: o5.application.v1.RouteProtocol
+type RouteProtocol string
+
+const (
+	RouteProtocol_UNSPECIFIED RouteProtocol = "UNSPECIFIED"
+	RouteProtocol_HTTP        RouteProtocol = "HTTP"
+	RouteProtocol_GRPC        RouteProtocol = "GRPC"
+)
+
+// Secret Proto: Secret
+type Secret struct {
 	Name string `json:"name,omitempty"`
 }
 
-// Grant Proto: Grant
-type Grant struct {
-	Principal string `json:"principal,omitempty"`
+// Database Proto: Database
+type Database struct {
+	Name     string             `json:"name,omitempty"`
+	Postgres *Database_Postgres `json:"postgres,omitempty"`
 }
