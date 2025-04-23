@@ -23,7 +23,10 @@ func O5CommandSet() *commander.CommandSet {
 
 	remoteGroup.Add("stack", commander.NewCommand(runStack))
 	remoteGroup.Add("stacks", commander.NewCommand(runStacks))
+
+	remoteGroup.Add("environment", commander.NewCommand(runEnvironment))
 	remoteGroup.Add("environments", commander.NewCommand(runEnvironments))
+	remoteGroup.Add("environment-config", commander.NewCommand(runEnvironmentConfig))
 
 	remoteGroup.Add("cluster", commander.NewCommand(runCluster))
 	remoteGroup.Add("cluster-config", commander.NewCommand(runClusterConfig))
@@ -90,9 +93,41 @@ func (cfg *StateCache) GetVal(key string) (string, error) {
 	return val, nil
 }
 
+func runEnvironment(ctx context.Context, cfg struct {
+	libo5.APIConfig
+
+	Id string `flag:"id"`
+}) error {
+	queryClient := deployer.NewCombinedClient(cfg.APIClient())
+
+	req := &deployer.GetEnvironmentRequest{
+		EnvironmentId: cfg.Id,
+	}
+
+	res, err := queryClient.GetEnvironment(ctx, req)
+	if err != nil {
+		return fmt.Errorf("get environment: %w", err)
+	}
+
+	fmt.Println("Environment:")
+	fmt.Println("\tName:", res.State.Data.Config.FullName)
+	fmt.Println("\tID:", res.State.EnvironmentId)
+	fmt.Println("\tClusterID:", res.State.ClusterId)
+	fmt.Println("\tStatus: ", res.State.Status)
+	fmt.Println("=========")
+
+	b, err := json.MarshalIndent(res.State.Data, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal: %w", err)
+	}
+
+	fmt.Printf("Data: %v\n", string(b))
+
+	return nil
+}
+
 func runEnvironments(ctx context.Context, cfg struct {
 	libo5.APIConfig
-	API string `env:"O5_API" flag:"api"`
 }) error {
 	queryClient := deployer.NewCombinedClient(cfg.APIClient())
 
@@ -114,6 +149,46 @@ func runEnvironments(ctx context.Context, cfg struct {
 		}); err != nil {
 		return fmt.Errorf("list stacks: %w", err)
 	}
+	return nil
+}
+
+func runEnvironmentConfig(ctx context.Context, cfg struct {
+	libo5.APIConfig
+
+	Id  string `flag:"id"`
+	Src string `flag:"src"`
+}) error {
+	client := cfg.APIClient()
+
+	content, err := readFile(ctx, cfg.Src)
+	if err != nil {
+		return fmt.Errorf("read file: %w", err)
+	}
+
+	req := &deployer.UpsertEnvironmentRequest{
+		EnvironmentId: cfg.Id,
+	}
+
+	ext := filepath.Ext(cfg.Src)
+	switch ext {
+	case ".json":
+		req.ConfigJson = content
+	case ".yaml", ".yml":
+		req.ConfigYaml = content
+	default:
+		return fmt.Errorf("unknown file type: %s", ext)
+	}
+
+	commandClient := deployer.NewDeploymentCommandService(client)
+	res, err := commandClient.UpsertEnvironment(ctx, req)
+	if err != nil {
+		return fmt.Errorf("upsert environment: %w", err)
+	}
+
+	fmt.Println("Environment:")
+	fmt.Println("\tID:", res.State.EnvironmentId)
+	fmt.Println("\tName:", res.State.Data.Config.FullName)
+
 	return nil
 }
 
