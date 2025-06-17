@@ -5,65 +5,16 @@ package environment
 
 import ()
 
-// CustomVariable Proto: CustomVariable
-type CustomVariable struct {
-	Name  string               `json:"name,omitempty"`
-	Value string               `json:"value,omitempty"`
-	Join  *CustomVariable_Join `json:"join,omitempty"`
-}
-
-// Cluster Proto: Cluster
-type Cluster struct {
-	Name string      `json:"name,omitempty"`
-	Aws  *AWSCluster `json:"aws,omitempty"`
-}
-
-// RDSAuthType_SecretsManager Proto: RDSAuthType_SecretsManager
-type RDSAuthType_SecretsManager struct {
-	SecretName string `json:"secretName,omitempty"`
-}
-
-// CombinedConfig Proto: CombinedConfig
-type CombinedConfig struct {
-	Name         string         `json:"name,omitempty"`
-	Aws          *AWSCluster    `json:"aws,omitempty"`
-	Environments []*Environment `json:"environments,omitempty"`
-}
-
-// CustomVariable_Join Proto: CustomVariable_Join
-type CustomVariable_Join struct {
-	Delimiter string   `json:"delimiter,omitempty"`
-	Values    []string `json:"values,omitempty"`
-}
-
-// Environment Proto: Environment
-type Environment struct {
-	FullName    string            `json:"fullName,omitempty"`
-	ClusterName string            `json:"clusterName,omitempty"`
-	TrustJwks   []string          `json:"trustJwks,omitempty"`
-	Vars        []*CustomVariable `json:"vars,omitempty"`
-	CorsOrigins []string          `json:"corsOrigins,omitempty"`
-	Aws         *AWSEnvironment   `json:"aws,omitempty"`
-}
-
-// AWSLink Proto: AWSLink
-type AWSLink struct {
-	LookupName string `json:"lookupName,omitempty"`
-	FullName   string `json:"fullName,omitempty"`
-	SnsPrefix  string `json:"snsPrefix,omitempty"`
+// ALBIngress Proto: ALBIngress
+type ALBIngress struct {
+	ListenerArn     string `json:"listenerArn,omitempty"`
+	SecurityGroupId string `json:"securityGroupId,omitempty"`
 }
 
 // RDSAuthType_IAM Proto: RDSAuthType_IAM
 type RDSAuthType_IAM struct {
 	DbUser string  `json:"dbUser,omitempty"`
 	DbName *string `json:"dbName,omitempty"`
-}
-
-// AWSEnvironment Proto: AWSEnvironment
-type AWSEnvironment struct {
-	HostHeader       *string           `json:"hostHeader,omitempty"`
-	EnvironmentLinks []*AWSLink        `json:"environmentLinks,omitempty"`
-	IamPolicies      []*NamedIAMPolicy `json:"iamPolicies,omitempty"`
 }
 
 // AWSCluster Proto: AWSCluster
@@ -78,11 +29,6 @@ type AWSCluster struct {
 	EventBridge     *EventBridge `json:"eventBridge,omitempty"`
 	EcsCluster      *ECSCluster  `json:"ecsCluster,omitempty"`
 	RdsHosts        []*RDSHost   `json:"rdsHosts,omitempty"`
-}
-
-// O5Deployer Proto: O5Deployer
-type O5Deployer struct {
-	AssumeRoleArn string `json:"assumeRoleArn,omitempty"`
 }
 
 // RDSAuthType Proto Oneof: o5.environment.v1.RDSAuthType
@@ -112,13 +58,40 @@ func (s RDSAuthType) Type() interface{} {
 	return nil
 }
 
-// ECSCluster Proto: ECSCluster
-type ECSCluster struct {
-	ClusterName         string   `json:"clusterName,omitempty"`
-	TaskExecutionRole   string   `json:"taskExecutionRole,omitempty"`
-	DefaultRegistry     string   `json:"defaultRegistry,omitempty"`
-	SubnetIds           []string `json:"subnetIds,omitempty"`
-	BaseSecurityGroupId string   `json:"baseSecurityGroupId,omitempty"`
+// RDSAuthType_SecretsManager Proto: RDSAuthType_SecretsManager
+type RDSAuthType_SecretsManager struct {
+	SecretName string `json:"secretName,omitempty"`
+}
+
+// Cluster Proto: Cluster
+type Cluster struct {
+	Name string      `json:"name,omitempty"`
+	Aws  *AWSCluster `json:"aws,omitempty"`
+}
+
+// CustomVariable_Join Proto: CustomVariable_Join
+type CustomVariable_Join struct {
+	Delimiter string   `json:"delimiter,omitempty"`
+	Values    []string `json:"values,omitempty"`
+}
+
+// O5Deployer Proto: O5Deployer
+type O5Deployer struct {
+	AssumeRoleArn string `json:"assumeRoleArn,omitempty"`
+}
+
+// CombinedConfig Proto: CombinedConfig
+type CombinedConfig struct {
+	Name         string         `json:"name,omitempty"`
+	Aws          *AWSCluster    `json:"aws,omitempty"`
+	Environments []*Environment `json:"environments,omitempty"`
+}
+
+// AWSLink Proto: AWSLink
+type AWSLink struct {
+	LookupName string `json:"lookupName,omitempty"`
+	FullName   string `json:"fullName,omitempty"`
+	SnsPrefix  string `json:"snsPrefix,omitempty"`
 }
 
 // RDSHost Proto: RDSHost
@@ -129,6 +102,36 @@ type RDSHost struct {
 	Endpoint              string       `json:"endpoint,omitempty"`
 	Port                  int32        `json:"port,omitempty"`
 	Auth                  *RDSAuthType `json:"auth,omitempty"`
+}
+
+// AWSEnvironment Proto: AWSEnvironment
+type AWSEnvironment struct {
+	HostHeader       *string           `json:"hostHeader,omitempty"`
+	EnvironmentLinks []*AWSLink        `json:"environmentLinks,omitempty"`
+	IamPolicies      []*NamedIAMPolicy `json:"iamPolicies,omitempty"`
+}
+
+// CustomVariable Proto: CustomVariable
+type CustomVariable struct {
+	Name  string               `json:"name,omitempty"`
+	Value string               `json:"value,omitempty"`
+	Join  *CustomVariable_Join `json:"join,omitempty"`
+}
+
+// NamedIAMPolicy Proto: NamedIAMPolicy
+type NamedIAMPolicy struct {
+	Name      string `json:"name,omitempty"`
+	PolicyArn string `json:"policyArn,omitempty"`
+}
+
+// Environment Proto: Environment
+type Environment struct {
+	FullName    string            `json:"fullName,omitempty"`
+	ClusterName string            `json:"clusterName,omitempty"`
+	TrustJwks   []string          `json:"trustJwks,omitempty"`
+	Vars        []*CustomVariable `json:"vars,omitempty"`
+	CorsOrigins []string          `json:"corsOrigins,omitempty"`
+	Aws         *AWSEnvironment   `json:"aws,omitempty"`
 }
 
 // EventBridge Proto: EventBridge
@@ -142,14 +145,11 @@ type O5Sidecar struct {
 	ImageRepo    *string `json:"imageRepo,omitempty"`
 }
 
-// ALBIngress Proto: ALBIngress
-type ALBIngress struct {
-	ListenerArn     string `json:"listenerArn,omitempty"`
-	SecurityGroupId string `json:"securityGroupId,omitempty"`
-}
-
-// NamedIAMPolicy Proto: NamedIAMPolicy
-type NamedIAMPolicy struct {
-	Name      string `json:"name,omitempty"`
-	PolicyArn string `json:"policyArn,omitempty"`
+// ECSCluster Proto: ECSCluster
+type ECSCluster struct {
+	ClusterName         string   `json:"clusterName,omitempty"`
+	TaskExecutionRole   string   `json:"taskExecutionRole,omitempty"`
+	DefaultRegistry     string   `json:"defaultRegistry,omitempty"`
+	SubnetIds           []string `json:"subnetIds,omitempty"`
+	BaseSecurityGroupId string   `json:"baseSecurityGroupId,omitempty"`
 }

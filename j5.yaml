@@ -16,6 +16,14 @@ generate:
           owner: pentops
           name: dante
 
+      - registry:
+          owner: pentops
+          name: ges
+
+      - registry:
+          owner: pentops
+          name: realm
+
     plugins:
       - base: go
     opts:

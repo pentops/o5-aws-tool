@@ -5,19 +5,14 @@ package infra
 
 import ()
 
-// AuroraConnection Proto: AuroraConnection
-type AuroraConnection struct {
-	Endpoint   string `json:"endpoint,omitempty"`
-	Port       int32  `json:"port,omitempty"`
-	DbUser     string `json:"dbUser,omitempty"`
-	DbName     string `json:"dbName,omitempty"`
-	Identifier string `json:"identifier,omitempty"`
+// RDSHostType_Aurora Proto: RDSHostType_Aurora
+type RDSHostType_Aurora struct {
+	Conn *AuroraConnection `json:"conn,omitempty"`
 }
 
-// ECSTaskContext Proto: ECSTaskContext
-type ECSTaskContext struct {
-	Cluster string              `json:"cluster,omitempty"`
-	Network *ECSTaskNetworkType `json:"network,omitempty"`
+// RDSHostType_SecretsManager Proto: RDSHostType_SecretsManager
+type RDSHostType_SecretsManager struct {
+	SecretName string `json:"secretName,omitempty"`
 }
 
 // RDSHostType Proto Oneof: o5.aws.infra.v1.RDSHostType
@@ -47,12 +42,6 @@ func (s RDSHostType) Type() interface{} {
 	return nil
 }
 
-// ECSTaskNetworkType_AWSVPC Proto: ECSTaskNetworkType_AWSVPC
-type ECSTaskNetworkType_AWSVPC struct {
-	SecurityGroups []string `json:"securityGroups,omitempty"`
-	Subnets        []string `json:"subnets,omitempty"`
-}
-
 // ECSTaskNetworkType Proto Oneof: o5.aws.infra.v1.ECSTaskNetworkType
 type ECSTaskNetworkType struct {
 	J5TypeKey string                     `json:"!type,omitempty"`
@@ -73,12 +62,23 @@ func (s ECSTaskNetworkType) Type() interface{} {
 	return nil
 }
 
-// RDSHostType_Aurora Proto: RDSHostType_Aurora
-type RDSHostType_Aurora struct {
-	Conn *AuroraConnection `json:"conn,omitempty"`
+// ECSTaskContext Proto: ECSTaskContext
+type ECSTaskContext struct {
+	Cluster string              `json:"cluster,omitempty"`
+	Network *ECSTaskNetworkType `json:"network,omitempty"`
 }
 
-// RDSHostType_SecretsManager Proto: RDSHostType_SecretsManager
-type RDSHostType_SecretsManager struct {
-	SecretName string `json:"secretName,omitempty"`
+// AuroraConnection Proto: AuroraConnection
+type AuroraConnection struct {
+	Endpoint   string `json:"endpoint,omitempty"`
+	Port       int32  `json:"port,omitempty"`
+	DbUser     string `json:"dbUser,omitempty"`
+	DbName     string `json:"dbName,omitempty"`
+	Identifier string `json:"identifier,omitempty"`
+}
+
+// ECSTaskNetworkType_AWSVPC Proto: ECSTaskNetworkType_AWSVPC
+type ECSTaskNetworkType_AWSVPC struct {
+	SecurityGroups []string `json:"securityGroups,omitempty"`
+	Subnets        []string `json:"subnets,omitempty"`
 }

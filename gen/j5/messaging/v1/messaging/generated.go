@@ -10,3 +10,11 @@ type RequestMetadata struct {
 	ReplyTo string `json:"replyTo,omitempty"`
 	Context []byte `json:"context,omitempty"`
 }
+
+// MessageCause Proto: MessageCause
+type MessageCause struct {
+	Method    string `json:"method"`
+	MessageId string `json:"messageId,omitempty"`
+	SourceApp string `json:"sourceApp,omitempty"`
+	SourceEnv string `json:"sourceEnv,omitempty"`
+}

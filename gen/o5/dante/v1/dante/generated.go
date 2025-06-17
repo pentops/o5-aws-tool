@@ -228,7 +228,7 @@ type GetDeadMessageResponse struct {
 // ListDeadMessagesRequest
 type ListDeadMessagesRequest struct {
 	Page  *list.PageRequest  `json:"-" query:"page"`
-	Query *list.QueryRequest `query:"query" json:"-"`
+	Query *list.QueryRequest `json:"-" query:"query"`
 }
 
 func (s *ListDeadMessagesRequest) SetPageToken(pageToken string) {
@@ -336,14 +336,22 @@ type DeadMessageEventType_Notified struct {
 	Notification *messaging.DeadMessage `json:"notification,omitempty"`
 }
 
+// DeadMessageState Proto: DeadMessageState
+type DeadMessageState struct {
+	Metadata  *state.StateMetadata `json:"metadata"`
+	MessageId string               `json:"messageId,omitempty"`
+	Status    MessageStatus        `json:"status,omitempty"`
+	Data      *DeadMessageData     `json:"data,omitempty"`
+}
+
 // DeadMessageEventType_Rejected Proto: DeadMessageEventType_Rejected
 type DeadMessageEventType_Rejected struct {
 	Reason string `json:"reason,omitempty"`
 }
 
-// DeadMessageKeys Proto: DeadMessageKeys
-type DeadMessageKeys struct {
-	MessageId string `json:"messageId,omitempty"`
+// DeadMessageEventType_Updated Proto: DeadMessageEventType_Updated
+type DeadMessageEventType_Updated struct {
+	Spec *DeadMessageVersion `json:"spec,omitempty"`
 }
 
 // DeadMessageData Proto: DeadMessageData
@@ -354,6 +362,12 @@ type DeadMessageData struct {
 
 // DeadMessageEventType_Replayed Proto: DeadMessageEventType_Replayed
 type DeadMessageEventType_Replayed struct {
+}
+
+// DeadMessageVersion_SQSMessage Proto: DeadMessageVersion_SQSMessage
+type DeadMessageVersion_SQSMessage struct {
+	QueueUrl   string            `json:"queueUrl,omitempty"`
+	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
 // DeadMessageEventType Proto Oneof: o5.dante.v1.DeadMessageEventType
@@ -397,6 +411,18 @@ func (s DeadMessageEventType) Type() interface{} {
 	return nil
 }
 
+// DeadMessageKeys Proto: DeadMessageKeys
+type DeadMessageKeys struct {
+	MessageId string `json:"messageId,omitempty"`
+}
+
+// DeadMessageVersion Proto: DeadMessageVersion
+type DeadMessageVersion struct {
+	VersionId  string                         `json:"versionId,omitempty"`
+	Message    *messaging.Message             `json:"message,omitempty"`
+	SqsMessage *DeadMessageVersion_SQSMessage `json:"sqsMessage,omitempty"`
+}
+
 // MessageStatus Proto Enum: o5.dante.v1.MessageStatus
 type MessageStatus string
 
@@ -407,32 +433,6 @@ const (
 	MessageStatus_REPLAYED    MessageStatus = "REPLAYED"
 	MessageStatus_REJECTED    MessageStatus = "REJECTED"
 )
-
-// DeadMessageState Proto: DeadMessageState
-type DeadMessageState struct {
-	Metadata  *state.StateMetadata `json:"metadata"`
-	MessageId string               `json:"messageId,omitempty"`
-	Status    MessageStatus        `json:"status,omitempty"`
-	Data      *DeadMessageData     `json:"data,omitempty"`
-}
-
-// DeadMessageVersion_SQSMessage Proto: DeadMessageVersion_SQSMessage
-type DeadMessageVersion_SQSMessage struct {
-	QueueUrl   string            `json:"queueUrl,omitempty"`
-	Attributes map[string]string `json:"attributes,omitempty"`
-}
-
-// DeadMessageVersion Proto: DeadMessageVersion
-type DeadMessageVersion struct {
-	VersionId  string                         `json:"versionId,omitempty"`
-	Message    *messaging.Message             `json:"message,omitempty"`
-	SqsMessage *DeadMessageVersion_SQSMessage `json:"sqsMessage,omitempty"`
-}
-
-// DeadMessageEventType_Updated Proto: DeadMessageEventType_Updated
-type DeadMessageEventType_Updated struct {
-	Spec *DeadMessageVersion `json:"spec,omitempty"`
-}
 
 // CombinedClient
 type CombinedClient struct {

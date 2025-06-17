@@ -263,23 +263,25 @@ func runDeployments(ctx context.Context, cfg struct {
 		cfg.All = true
 	}
 
-	if err := libo5.Paged(ctx,
-		&deployer.ListDeploymentsRequest{
-			Query: query,
-		},
-		queryClient.ListDeployments,
-		func(deployment *deployer.DeploymentState) error {
-			foundDeployments = append(foundDeployments, deployment)
-			return nil
-		}); err != nil {
-		return fmt.Errorf("list deployments: %w", err)
-	}
-
-	if len(foundDeployments) == 0 {
-		if !cfg.Q {
-			fmt.Println("No deployments found")
+	for {
+		if err := libo5.Paged(ctx,
+			&deployer.ListDeploymentsRequest{
+				Query: query,
+			},
+			queryClient.ListDeployments,
+			func(deployment *deployer.DeploymentState) error {
+				foundDeployments = append(foundDeployments, deployment)
+				return nil
+			}); err != nil {
+			return fmt.Errorf("list deployments: %w", err)
 		}
-		return nil
+		if cfg.Q || len(foundDeployments) > 0 {
+			break
+		}
+
+		time.Sleep(2 * time.Second)
+
+		fmt.Printf("Waiting for deployments...\n")
 	}
 
 	runningDeployments := []*deployer.DeploymentState{}
