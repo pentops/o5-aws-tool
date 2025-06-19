@@ -7,6 +7,13 @@ import (
 	time "time"
 )
 
+// Action Proto: Action
+type Action struct {
+	Method      string       `json:"method"`
+	Actor       *Actor       `json:"actor"`
+	Fingerprint *Fingerprint `json:"fingerprint,omitempty"`
+}
+
 // Actor Proto: Actor
 type Actor struct {
 	SubjectId            string                `json:"subjectId,omitempty"`
@@ -14,19 +21,6 @@ type Actor struct {
 	AuthenticationMethod *AuthenticationMethod `json:"authenticationMethod,omitempty"`
 	Claim                *Claim                `json:"claim"`
 	ActorTags            map[string]string     `json:"actorTags,omitempty"`
-}
-
-// AuthenticationMethod_External Proto: AuthenticationMethod_External
-type AuthenticationMethod_External struct {
-	SystemName string            `json:"systemName,omitempty"`
-	Metadata   map[string]string `json:"metadata,omitempty"`
-}
-
-// AuthenticationMethod_JWT Proto: AuthenticationMethod_JWT
-type AuthenticationMethod_JWT struct {
-	JwtId    string     `json:"jwtId,omitempty"`
-	Issuer   string     `json:"issuer,omitempty"`
-	IssuedAt *time.Time `json:"issuedAt,omitempty"`
 }
 
 // AuthenticationMethod Proto Oneof: j5.auth.v1.AuthenticationMethod
@@ -63,10 +57,17 @@ func (s AuthenticationMethod) Type() interface{} {
 	return nil
 }
 
-// Fingerprint Proto: Fingerprint
-type Fingerprint struct {
-	IpAddress *string `json:"ipAddress,omitempty"`
-	UserAgent *string `json:"userAgent,omitempty"`
+// AuthenticationMethod_External Proto: AuthenticationMethod_External
+type AuthenticationMethod_External struct {
+	SystemName string            `json:"systemName,omitempty"`
+	Metadata   map[string]string `json:"metadata,omitempty"`
+}
+
+// AuthenticationMethod_JWT Proto: AuthenticationMethod_JWT
+type AuthenticationMethod_JWT struct {
+	JwtId    string     `json:"jwtId,omitempty"`
+	Issuer   string     `json:"issuer,omitempty"`
+	IssuedAt *time.Time `json:"issuedAt,omitempty"`
 }
 
 // AuthenticationMethod_Session Proto: AuthenticationMethod_Session
@@ -77,17 +78,16 @@ type AuthenticationMethod_Session struct {
 	AuthenticatedAt *time.Time `json:"authenticatedAt,omitempty"`
 }
 
-// Action Proto: Action
-type Action struct {
-	Method      string       `json:"method"`
-	Actor       *Actor       `json:"actor"`
-	Fingerprint *Fingerprint `json:"fingerprint,omitempty"`
-}
-
 // Claim Proto: Claim
 type Claim struct {
 	RealmId    string   `json:"realmId,omitempty"`
 	TenantType string   `json:"tenantType,omitempty"`
 	TenantId   string   `json:"tenantId,omitempty"`
 	Scopes     []string `json:"scopes,omitempty"`
+}
+
+// Fingerprint Proto: Fingerprint
+type Fingerprint struct {
+	IpAddress *string `json:"ipAddress,omitempty"`
+	UserAgent *string `json:"userAgent,omitempty"`
 }

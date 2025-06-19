@@ -83,10 +83,10 @@ github.com/pentops/j5 v0.0.0-20250617223808-91fae5a3b112 h1:DVzP2kHTOdVum05VkkKw
 github.com/pentops/j5 v0.0.0-20250617223808-91fae5a3b112/go.mod h1:DZbBKepsGataOEtfB8AjkRiejRtLGQcBejTUYJK5wlY=
 github.com/pentops/log.go v0.0.0-20250521181902-0b84b98a60de h1:7a1sIqhSxVVQiYeqm+k56+zQKJBJ962C8ZI4xem/Y8U=
 github.com/pentops/log.go v0.0.0-20250521181902-0b84b98a60de/go.mod h1:yR34x8aMlvhdGvqgIU4+0MiLjJTKt0vpcgUnVN2nZV4=
-github.com/pentops/o5-messaging v0.0.0-20250520213617-fba07334e9aa h1:Sdnc9mrRSefBbbrwmpq/31ABuXBwtch2KGd68ORJS44=
-github.com/pentops/o5-messaging v0.0.0-20250520213617-fba07334e9aa/go.mod h1:HC8BSCybYzZGmN8x2dpbdxZCAZeziHfZPb4r8pzLUhc=
-github.com/pentops/runner v0.0.0-20250617231107-938303a119fd h1:noafm0ZprFB845mGw6pII5rAPTLXU1+9Ct3b2xPL49k=
-github.com/pentops/runner v0.0.0-20250617231107-938303a119fd/go.mod h1:hzPLosxy6O/1qjLUyt9lzE2M1Re/ASxmrErHbImXgNk=
+github.com/pentops/o5-messaging v0.0.0-20250618204836-8a488dd0569c h1:Zz/v7dMhhLcrmzyIM+FaYuLkHIEWI+HxqGRF0edkqvk=
+github.com/pentops/o5-messaging v0.0.0-20250618204836-8a488dd0569c/go.mod h1:pZByZY11cKIBUki35ngCg1IANB4dmo3uM7dMcd0R6bc=
+github.com/pentops/runner v0.0.0-20250619010747-2bb7a5385324 h1:8XpxeCwt2P9qeoxZKmPOb5+dPkMVpI6RHe25IP5ObIo=
+github.com/pentops/runner v0.0.0-20250619010747-2bb7a5385324/go.mod h1:shToz/PSOjLpxWHDUQdY9TzawzHGTDJ69o+fHokrJ+4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

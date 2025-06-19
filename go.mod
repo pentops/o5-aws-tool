@@ -21,8 +21,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/pentops/golib v0.0.0-20250326060930-8c83d58ddb63
 	github.com/pentops/log.go v0.0.0-20250521181902-0b84b98a60de
-	github.com/pentops/o5-messaging v0.0.0-20250520213617-fba07334e9aa
-	github.com/pentops/runner v0.0.0-20250617231107-938303a119fd
+	github.com/pentops/o5-messaging v0.0.0-20250618204836-8a488dd0569c
+	github.com/pentops/runner v0.0.0-20250619010747-2bb7a5385324
 	golang.org/x/sync v0.14.0
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v2 v2.4.0

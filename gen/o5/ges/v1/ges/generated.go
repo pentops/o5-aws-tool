@@ -6,15 +6,81 @@ package ges
 import (
 	context "context"
 	json "encoding/json"
-	list "github.com/pentops/o5-aws-tool/gen/j5/list/v1/list"
-	state "github.com/pentops/o5-aws-tool/gen/j5/state/v1/state"
 	url "net/url"
 	strings "strings"
 	time "time"
+
+	list "github.com/pentops/o5-aws-tool/gen/j5/list/v1/list"
+	state "github.com/pentops/o5-aws-tool/gen/j5/state/v1/state"
 )
 
 type Requester interface {
 	Request(ctx context.Context, method string, path string, body interface{}, response interface{}) error
+}
+
+// CommandService
+type CommandService struct {
+	Requester
+}
+
+func NewCommandService(requester Requester) *CommandService {
+	return &CommandService{
+		Requester: requester,
+	}
+}
+
+func (s CommandService) ReplayEvents(ctx context.Context, req *ReplayEventsRequest) (*ReplayEventsResponse, error) {
+	pathParts := make([]string, 5)
+	pathParts[0] = ""
+	pathParts[1] = "ges"
+	pathParts[2] = "v1"
+	pathParts[3] = "events"
+	pathParts[4] = "replay"
+	path := strings.Join(pathParts, "/")
+	resp := &ReplayEventsResponse{}
+	err := s.Request(ctx, "POST", path, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s CommandService) ReplayUpserts(ctx context.Context, req *ReplayUpsertsRequest) (*ReplayUpsertsResponse, error) {
+	pathParts := make([]string, 5)
+	pathParts[0] = ""
+	pathParts[1] = "ges"
+	pathParts[2] = "v1"
+	pathParts[3] = "upserts"
+	pathParts[4] = "replay"
+	path := strings.Join(pathParts, "/")
+	resp := &ReplayUpsertsResponse{}
+	err := s.Request(ctx, "POST", path, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// ReplayEventsRequest
+type ReplayEventsRequest struct {
+	QueueUrl    string `json:"queueUrl"`
+	GrpcService string `json:"grpcService"`
+	GrpcMethod  string `json:"grpcMethod"`
+}
+
+// ReplayEventsResponse
+type ReplayEventsResponse struct {
+}
+
+// ReplayUpsertsRequest
+type ReplayUpsertsRequest struct {
+	QueueUrl    string `json:"queueUrl"`
+	GrpcService string `json:"grpcService"`
+	GrpcMethod  string `json:"grpcMethod"`
+}
+
+// ReplayUpsertsResponse
+type ReplayUpsertsResponse struct {
 }
 
 // QueryService
@@ -41,7 +107,7 @@ func (s QueryService) EventsList(ctx context.Context, req *EventsListRequest) (*
 		path += "?" + query.Encode()
 	}
 	resp := &EventsListResponse{}
-	err := s.Request(ctx, "GET", path, req, resp)
+	err := s.Request(ctx, "GET", path, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +127,7 @@ func (s QueryService) UpsertList(ctx context.Context, req *UpsertListRequest) (*
 		path += "?" + query.Encode()
 	}
 	resp := &UpsertListResponse{}
-	err := s.Request(ctx, "GET", path, req, resp)
+	err := s.Request(ctx, "GET", path, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -166,82 +232,6 @@ func (s UpsertListResponse) GetItems() []*Upsert {
 	return s.Events
 }
 
-// CommandService
-type CommandService struct {
-	Requester
-}
-
-func NewCommandService(requester Requester) *CommandService {
-	return &CommandService{
-		Requester: requester,
-	}
-}
-
-func (s CommandService) ReplayEvents(ctx context.Context, req *ReplayEventsRequest) (*ReplayEventsResponse, error) {
-	pathParts := make([]string, 5)
-	pathParts[0] = ""
-	pathParts[1] = "ges"
-	pathParts[2] = "v1"
-	pathParts[3] = "events"
-	pathParts[4] = "replay"
-	path := strings.Join(pathParts, "/")
-	resp := &ReplayEventsResponse{}
-	err := s.Request(ctx, "POST", path, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (s CommandService) ReplayUpserts(ctx context.Context, req *ReplayUpsertsRequest) (*ReplayUpsertsResponse, error) {
-	pathParts := make([]string, 5)
-	pathParts[0] = ""
-	pathParts[1] = "ges"
-	pathParts[2] = "v1"
-	pathParts[3] = "upserts"
-	pathParts[4] = "replay"
-	path := strings.Join(pathParts, "/")
-	resp := &ReplayUpsertsResponse{}
-	err := s.Request(ctx, "POST", path, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// ReplayEventsRequest
-type ReplayEventsRequest struct {
-	QueueUrl    string `json:"queueUrl"`
-	GrpcService string `json:"grpcService"`
-	GrpcMethod  string `json:"grpcMethod"`
-}
-
-// ReplayEventsResponse
-type ReplayEventsResponse struct {
-}
-
-// ReplayUpsertsRequest
-type ReplayUpsertsRequest struct {
-	QueueUrl    string `json:"queueUrl"`
-	GrpcService string `json:"grpcService"`
-	GrpcMethod  string `json:"grpcMethod"`
-}
-
-// ReplayUpsertsResponse
-type ReplayUpsertsResponse struct {
-}
-
-// Upsert Proto: Upsert
-type Upsert struct {
-	EntityName         string      `json:"entityName"`
-	EntityId           string      `json:"entityId"`
-	GrpcMethod         string      `json:"grpcMethod"`
-	GrpcService        string      `json:"grpcService"`
-	LastEventId        string      `json:"lastEventId"`
-	LastEventTimestamp *time.Time  `json:"lastEventTimestamp"`
-	Data               interface{} `json:"data"`
-}
-
 // Event Proto: Event
 type Event struct {
 	EntityName   string                      `json:"entityName"`
@@ -256,15 +246,26 @@ type Event struct {
 	EntityStatus string                      `json:"entityStatus"`
 }
 
+// Upsert Proto: Upsert
+type Upsert struct {
+	EntityName         string      `json:"entityName"`
+	EntityId           string      `json:"entityId"`
+	GrpcMethod         string      `json:"grpcMethod"`
+	GrpcService        string      `json:"grpcService"`
+	LastEventId        string      `json:"lastEventId"`
+	LastEventTimestamp *time.Time  `json:"lastEventTimestamp"`
+	Data               interface{} `json:"data"`
+}
+
 // CombinedClient
 type CombinedClient struct {
-	*QueryService
 	*CommandService
+	*QueryService
 }
 
 func NewCombinedClient(requester Requester) *CombinedClient {
 	return &CombinedClient{
-		QueryService:   NewQueryService(requester),
 		CommandService: NewCommandService(requester),
+		QueryService:   NewQueryService(requester),
 	}
 }

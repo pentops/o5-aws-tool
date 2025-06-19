@@ -4,56 +4,11 @@ package state
 // Source: github.com/pentops/o5-aws-tool/gen/j5/state/v1/state
 
 import (
+	time "time"
+
 	auth "github.com/pentops/o5-aws-tool/gen/j5/auth/v1/auth"
 	messaging "github.com/pentops/o5-aws-tool/gen/j5/messaging/v1/messaging"
-	time "time"
 )
-
-// InitCause Proto: InitCause
-type InitCause struct {
-}
-
-// PSMEventCause Proto: PSMEventCause
-type PSMEventCause struct {
-	EventId      string `json:"eventId,omitempty"`
-	StateMachine string `json:"stateMachine,omitempty"`
-}
-
-// EventMetadata Proto: EventMetadata
-type EventMetadata struct {
-	EventId   string     `json:"eventId,omitempty"`
-	Sequence  uint64     `json:"sequence,omitempty,string"`
-	Timestamp *time.Time `json:"timestamp"`
-	Cause     *Cause     `json:"cause,omitempty"`
-}
-
-// PublishAuth Proto: PublishAuth
-type PublishAuth struct {
-	RequiredScopes []string       `json:"requiredScopes,omitempty"`
-	TenantKeys     []*EventTenant `json:"tenantKeys,omitempty"`
-}
-
-// ExternalEventCause Proto: ExternalEventCause
-type ExternalEventCause struct {
-	SystemName string  `json:"systemName,omitempty"`
-	EventName  string  `json:"eventName,omitempty"`
-	ExternalId *string `json:"externalId,omitempty"`
-}
-
-// EventTenant Proto: EventTenant
-type EventTenant struct {
-	TenantType string `json:"tenantType,omitempty"`
-	TenantId   string `json:"tenantId,omitempty"`
-}
-
-// EventPublishMetadata Proto: EventPublishMetadata
-type EventPublishMetadata struct {
-	EventId   string       `json:"eventId,omitempty"`
-	Sequence  uint64       `json:"sequence,omitempty,string"`
-	Timestamp *time.Time   `json:"timestamp"`
-	Cause     *Cause       `json:"cause,omitempty"`
-	Auth      *PublishAuth `json:"auth,omitempty"`
-}
 
 // Cause Proto Oneof: j5.state.v1.Cause
 type Cause struct {
@@ -101,6 +56,52 @@ func (s Cause) Type() interface{} {
 		return s.Init
 	}
 	return nil
+}
+
+// EventMetadata Proto: EventMetadata
+type EventMetadata struct {
+	EventId   string     `json:"eventId,omitempty"`
+	Sequence  uint64     `json:"sequence,omitempty,string"`
+	Timestamp *time.Time `json:"timestamp"`
+	Cause     *Cause     `json:"cause,omitempty"`
+}
+
+// EventPublishMetadata Proto: EventPublishMetadata
+type EventPublishMetadata struct {
+	EventId   string       `json:"eventId,omitempty"`
+	Sequence  uint64       `json:"sequence,omitempty,string"`
+	Timestamp *time.Time   `json:"timestamp"`
+	Cause     *Cause       `json:"cause,omitempty"`
+	Auth      *PublishAuth `json:"auth,omitempty"`
+}
+
+// EventTenant Proto: EventTenant
+type EventTenant struct {
+	TenantType string `json:"tenantType,omitempty"`
+	TenantId   string `json:"tenantId,omitempty"`
+}
+
+// ExternalEventCause Proto: ExternalEventCause
+type ExternalEventCause struct {
+	SystemName string  `json:"systemName,omitempty"`
+	EventName  string  `json:"eventName,omitempty"`
+	ExternalId *string `json:"externalId,omitempty"`
+}
+
+// InitCause Proto: InitCause
+type InitCause struct {
+}
+
+// PSMEventCause Proto: PSMEventCause
+type PSMEventCause struct {
+	EventId      string `json:"eventId,omitempty"`
+	StateMachine string `json:"stateMachine,omitempty"`
+}
+
+// PublishAuth Proto: PublishAuth
+type PublishAuth struct {
+	RequiredScopes []string       `json:"requiredScopes,omitempty"`
+	TenantKeys     []*EventTenant `json:"tenantKeys,omitempty"`
 }
 
 // StateMetadata Proto: StateMetadata

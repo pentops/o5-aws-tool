@@ -7,16 +7,60 @@ import (
 	time "time"
 )
 
+// Any Proto: Any
+type Any struct {
+	TypeUrl  string       `json:"typeUrl,omitempty"`
+	Value    []byte       `json:"value,omitempty"`
+	Encoding WireEncoding `json:"encoding,omitempty"`
+}
+
+// Message Proto: Message
+type Message struct {
+	MessageId        string            `json:"messageId,omitempty"`
+	GrpcService      string            `json:"grpcService,omitempty"`
+	GrpcMethod       string            `json:"grpcMethod,omitempty"`
+	Body             *Any              `json:"body,omitempty"`
+	SourceApp        string            `json:"sourceApp,omitempty"`
+	SourceEnv        string            `json:"sourceEnv,omitempty"`
+	DestinationTopic string            `json:"destinationTopic,omitempty"`
+	Timestamp        *time.Time        `json:"timestamp,omitempty"`
+	Headers          map[string]string `json:"headers,omitempty"`
+	DelaySeconds     int32             `json:"delaySeconds,omitempty"`
+	Request          *Message_Request  `json:"request,omitempty"`
+	Reply            *Message_Reply    `json:"reply,omitempty"`
+	Event            *Message_Event    `json:"event,omitempty"`
+	Upsert           *Message_Upsert   `json:"upsert,omitempty"`
+}
+
+// Message_Event Proto: Message_Event
+type Message_Event struct {
+	EntityName string `json:"entityName,omitempty"`
+}
+
 // Message_Reply Proto: Message_Reply
 type Message_Reply struct {
 	ReplyTo string `json:"replyTo,omitempty"`
 }
 
-// Infra Proto: Infra
-type Infra struct {
-	Type     string            `json:"type,omitempty"`
-	Metadata map[string]string `json:"metadata,omitempty"`
+// Message_Request Proto: Message_Request
+type Message_Request struct {
+	ReplyTo string `json:"replyTo,omitempty"`
 }
+
+// Message_Upsert Proto: Message_Upsert
+type Message_Upsert struct {
+	EntityName string `json:"entityName,omitempty"`
+}
+
+// WireEncoding Proto Enum: o5.messaging.v1.WireEncoding
+type WireEncoding string
+
+const (
+	WireEncoding_UNSPECIFIED WireEncoding = "UNSPECIFIED"
+	WireEncoding_PROTOJSON   WireEncoding = "PROTOJSON"
+	WireEncoding_RAW         WireEncoding = "RAW"
+	WireEncoding_J5_JSON     WireEncoding = "J5_JSON"
+)
 
 // DeadMessage Proto: DeadMessage
 type DeadMessage struct {
@@ -28,21 +72,10 @@ type DeadMessage struct {
 	Infra      *Infra   `json:"infra,omitempty"`
 }
 
-// Problem_UnhandledError Proto: Problem_UnhandledError
-type Problem_UnhandledError struct {
-	Error string `json:"error,omitempty"`
-}
-
-// Any Proto: Any
-type Any struct {
-	TypeUrl  string       `json:"typeUrl,omitempty"`
-	Value    []byte       `json:"value,omitempty"`
-	Encoding WireEncoding `json:"encoding,omitempty"`
-}
-
-// Message_Request Proto: Message_Request
-type Message_Request struct {
-	ReplyTo string `json:"replyTo,omitempty"`
+// Infra Proto: Infra
+type Infra struct {
+	Type     string            `json:"type,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
 }
 
 // Problem Proto Oneof: o5.messaging.v1.Problem
@@ -65,26 +98,7 @@ func (s Problem) Type() interface{} {
 	return nil
 }
 
-// Message Proto: Message
-type Message struct {
-	MessageId        string            `json:"messageId,omitempty"`
-	GrpcService      string            `json:"grpcService,omitempty"`
-	GrpcMethod       string            `json:"grpcMethod,omitempty"`
-	Body             *Any              `json:"body,omitempty"`
-	SourceApp        string            `json:"sourceApp,omitempty"`
-	SourceEnv        string            `json:"sourceEnv,omitempty"`
-	DestinationTopic string            `json:"destinationTopic,omitempty"`
-	Timestamp        *time.Time        `json:"timestamp,omitempty"`
-	Headers          map[string]string `json:"headers,omitempty"`
-	Request          *Message_Request  `json:"request,omitempty"`
-	Reply            *Message_Reply    `json:"reply,omitempty"`
+// Problem_UnhandledError Proto: Problem_UnhandledError
+type Problem_UnhandledError struct {
+	Error string `json:"error,omitempty"`
 }
-
-// WireEncoding Proto Enum: o5.messaging.v1.WireEncoding
-type WireEncoding string
-
-const (
-	WireEncoding_UNSPECIFIED WireEncoding = "UNSPECIFIED"
-	WireEncoding_PROTOJSON   WireEncoding = "PROTOJSON"
-	WireEncoding_RAW         WireEncoding = "RAW"
-)
