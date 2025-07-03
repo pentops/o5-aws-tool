@@ -143,8 +143,9 @@ func debugToken(authHeader string) {
 func (c *API) Request(ctx context.Context, method, path string, req, res any) error {
 	var reqBody io.Reader
 	ctx = log.WithFields(ctx, map[string]any{
-		"method": method,
-		"path":   path,
+		"method":  method,
+		"path":    path,
+		"baseURL": c.BaseURL,
 	})
 
 	if req != nil {
