@@ -11,28 +11,46 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/pentops/log.go/log"
 	"github.com/pentops/o5-aws-tool/gen/j5/realm/v1/realm"
 )
 
 type APIConfig struct {
-	BaseURL       string `env:"O5_API"`
-	BearerToken   string `env:"O5_BEARER" required:"false"`
+	BaseURL string `env:"O5_API"`
+
+	BearerToken string `env:"O5_BEARER" required:"false"`
+
+	TokenEndpoint string `env:"O5_TOKEN_ENDPOINT" required:"false"`
 	ClientID      string `env:"O5_CLIENT_ID" required:"false"`
 	ClientSecret  string `env:"O5_CLIENT_SECRET" required:"false"`
-	TokenEndpoint string `env:"O5_TOKEN_ENDPOINT" required:"false"`
+
+	IAMEndpoint string `env:"O5_IAM_TOKEN_ENDPOINT" required:"false"`
 }
 
 func (c APIConfig) APIClient() *API {
 	client := NewAPI(c.BaseURL)
 	tokenEndpoint := c.TokenEndpoint
-	if tokenEndpoint == "" {
-		tokenEndpoint = c.BaseURL + "/realm-auth/v1/token"
-	}
 
 	if c.BearerToken != "" {
 		client.Auth = BearerToken(c.BearerToken)
+	} else if c.IAMEndpoint != "" {
+
+		ctx := context.Background()
+		awsConfig, err := config.LoadDefaultConfig(ctx)
+		if err != nil {
+			panic(fmt.Errorf("failed to load AWS config: %w", err))
+		}
+
+		auth, err := NewIAMAuth(c.IAMEndpoint, "clearing", awsConfig)
+		if err != nil {
+			panic(fmt.Errorf("failed to create IAM auth: %w", err))
+		}
+		client.Auth = auth
 	} else if c.ClientID != "" || c.ClientSecret != "" {
+		if tokenEndpoint == "" {
+			tokenEndpoint = c.BaseURL + "/realm-auth/v1/token"
+		}
 		client.Auth = &APIKeyAuth{
 			Key:      c.ClientID,
 			Secret:   c.ClientSecret,
