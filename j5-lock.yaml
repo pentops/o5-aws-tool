@@ -1,11 +1,11 @@
 inputs:
     - name: registry/pentops/builds
-      version: 6af2be4d2737f2f42bf1fe346ae42a71ee9785d4
+      version: 2b24f958c1b2912acfced6a4f2aefbdbfd478cd7
     - name: registry/pentops/o5-deploy
-      version: 1c85eecf909098675755573d063161398f449f40
+      version: e3b00723fa07ef1dbf50c070731db7e44df9b3c1
     - name: registry/pentops/dante
-      version: a0b2e0bf59c16b9fdd99b437b018f75d12ecf8b0
+      version: 095314884dc01e23a41c581d98b7debfcd12f999
     - name: registry/pentops/ges
-      version: 2ce66617c6a909d231ab30c5f8b67a35c9920dcf
+      version: cef291d16453a6306920fac824a7785efd07a720
     - name: registry/pentops/realm
-      version: f143e4902d9e00828b5368d2017fac065fe73968
+      version: aacc1b26be5da606f86bf9eecc66053b3c64581e

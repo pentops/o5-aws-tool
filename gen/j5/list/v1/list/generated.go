@@ -14,10 +14,38 @@ type Field struct {
 	Type *FieldType `json:"type"`
 }
 
-// FieldType Proto: FieldType
+// FieldType Proto Oneof: j5.list.v1.FieldType
 type FieldType struct {
-	Value string `json:"value,omitempty"`
-	Range *Range `json:"range,omitempty"`
+	J5TypeKey string  `json:"!type,omitempty"`
+	Value     *string `json:"value,omitempty"`
+	Range     *Range  `json:"range,omitempty"`
+	In        *Values `json:"in,omitempty"`
+}
+
+func (s FieldType) OneofKey() string {
+	if s.Value != nil {
+		return "value"
+	}
+	if s.Range != nil {
+		return "range"
+	}
+	if s.In != nil {
+		return "in"
+	}
+	return ""
+}
+
+func (s FieldType) Type() interface{} {
+	if s.Value != nil {
+		return s.Value
+	}
+	if s.Range != nil {
+		return s.Range
+	}
+	if s.In != nil {
+		return s.In
+	}
+	return nil
 }
 
 // Filter Proto Oneof: j5.list.v1.Filter
@@ -93,4 +121,9 @@ type Search struct {
 type Sort struct {
 	Field      string `json:"field,omitempty"`
 	Descending bool   `json:"descending,omitempty"`
+}
+
+// Values Proto: Values
+type Values struct {
+	Values []string `json:"values,omitempty"`
 }

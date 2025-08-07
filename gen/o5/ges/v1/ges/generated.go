@@ -12,6 +12,7 @@ import (
 
 	list "github.com/pentops/o5-aws-tool/gen/j5/list/v1/list"
 	state "github.com/pentops/o5-aws-tool/gen/j5/state/v1/state"
+	messaging "github.com/pentops/o5-aws-tool/gen/o5/messaging/v1/messaging"
 )
 
 type Requester interface {
@@ -61,6 +62,22 @@ func (s CommandService) ReplayUpserts(ctx context.Context, req *ReplayUpsertsReq
 	return resp, nil
 }
 
+func (s CommandService) ReplayGeneric(ctx context.Context, req *ReplayGenericRequest) (*ReplayGenericResponse, error) {
+	pathParts := make([]string, 5)
+	pathParts[0] = ""
+	pathParts[1] = "ges"
+	pathParts[2] = "v1"
+	pathParts[3] = "generic"
+	pathParts[4] = "replay"
+	path := strings.Join(pathParts, "/")
+	resp := &ReplayGenericResponse{}
+	err := s.Request(ctx, "POST", path, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // ReplayEventsRequest
 type ReplayEventsRequest struct {
 	QueueUrl    string `json:"queueUrl"`
@@ -74,13 +91,24 @@ type ReplayEventsResponse struct {
 
 // ReplayUpsertsRequest
 type ReplayUpsertsRequest struct {
-	QueueUrl    string `json:"queueUrl"`
-	GrpcService string `json:"grpcService"`
-	GrpcMethod  string `json:"grpcMethod"`
+	QueueUrl    string  `json:"queueUrl"`
+	GrpcService string  `json:"grpcService"`
+	GrpcMethod  *string `json:"grpcMethod,omitempty"`
 }
 
 // ReplayUpsertsResponse
 type ReplayUpsertsResponse struct {
+}
+
+// ReplayGenericRequest
+type ReplayGenericRequest struct {
+	QueueUrl    string  `json:"queueUrl"`
+	GrpcService string  `json:"grpcService"`
+	GrpcMethod  *string `json:"grpcMethod,omitempty"`
+}
+
+// ReplayGenericResponse
+type ReplayGenericResponse struct {
 }
 
 // QueryService
@@ -134,6 +162,26 @@ func (s QueryService) UpsertList(ctx context.Context, req *UpsertListRequest) (*
 	return resp, nil
 }
 
+func (s QueryService) GenericList(ctx context.Context, req *GenericListRequest) (*GenericListResponse, error) {
+	pathParts := make([]string, 4)
+	pathParts[0] = ""
+	pathParts[1] = "ges"
+	pathParts[2] = "v1"
+	pathParts[3] = "generic"
+	path := strings.Join(pathParts, "/")
+	if query, err := req.QueryParameters(); err != nil {
+		return nil, err
+	} else if len(query) > 0 {
+		path += "?" + query.Encode()
+	}
+	resp := &GenericListResponse{}
+	err := s.Request(ctx, "GET", path, nil, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // EventsListRequest
 type EventsListRequest struct {
 	Page  *list.PageRequest  `json:"-" query:"page"`
@@ -168,8 +216,8 @@ func (s EventsListRequest) QueryParameters() (url.Values, error) {
 
 // EventsListResponse
 type EventsListResponse struct {
-	Page   *list.PageResponse `json:"page,omitempty"`
 	Events []*Event           `json:"events,omitempty"`
+	Page   *list.PageResponse `json:"page,omitempty"`
 }
 
 func (s EventsListResponse) GetPageToken() *string {
@@ -217,8 +265,8 @@ func (s UpsertListRequest) QueryParameters() (url.Values, error) {
 
 // UpsertListResponse
 type UpsertListResponse struct {
-	Page   *list.PageResponse `json:"page,omitempty"`
 	Events []*Upsert          `json:"events,omitempty"`
+	Page   *list.PageResponse `json:"page,omitempty"`
 }
 
 func (s UpsertListResponse) GetPageToken() *string {
@@ -229,6 +277,55 @@ func (s UpsertListResponse) GetPageToken() *string {
 }
 
 func (s UpsertListResponse) GetItems() []*Upsert {
+	return s.Events
+}
+
+// GenericListRequest
+type GenericListRequest struct {
+	Page  *list.PageRequest  `json:"-" query:"page"`
+	Query *list.QueryRequest `json:"-" query:"query"`
+}
+
+func (s *GenericListRequest) SetPageToken(pageToken string) {
+	if s.Page == nil {
+		s.Page = &list.PageRequest{}
+	}
+	s.Page.Token = &pageToken
+}
+
+func (s GenericListRequest) QueryParameters() (url.Values, error) {
+	values := url.Values{}
+	if s.Page != nil {
+		bb, err := json.Marshal(s.Page)
+		if err != nil {
+			return nil, err
+		}
+		values.Set("page", string(bb))
+	}
+	if s.Query != nil {
+		bb, err := json.Marshal(s.Query)
+		if err != nil {
+			return nil, err
+		}
+		values.Set("query", string(bb))
+	}
+	return values, nil
+}
+
+// GenericListResponse
+type GenericListResponse struct {
+	Events []*messaging.Message `json:"events,omitempty"`
+	Page   *list.PageResponse   `json:"page,omitempty"`
+}
+
+func (s GenericListResponse) GetPageToken() *string {
+	if s.Page == nil {
+		return nil
+	}
+	return s.Page.NextToken
+}
+
+func (s GenericListResponse) GetItems() []*messaging.Message {
 	return s.Events
 }
 

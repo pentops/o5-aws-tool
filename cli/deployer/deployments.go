@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/pentops/golib/gl"
 	"github.com/pentops/o5-aws-tool/gen/j5/drss/v1/drss"
 	"github.com/pentops/o5-aws-tool/gen/j5/list/v1/list"
 	"github.com/pentops/o5-aws-tool/gen/o5/aws/deployer/v1/deployer"
@@ -220,7 +221,7 @@ func runDeployments(ctx context.Context, cfg struct {
 			Field: &list.Field{
 				Name: "data.spec.appName",
 				Type: &list.FieldType{
-					Value: cfg.AppName,
+					Value: gl.Ptr(cfg.AppName),
 				},
 			},
 		})
@@ -231,7 +232,7 @@ func runDeployments(ctx context.Context, cfg struct {
 			Field: &list.Field{
 				Name: "data.spec.environmentName",
 				Type: &list.FieldType{
-					Value: cfg.EnvName,
+					Value: gl.Ptr(cfg.EnvName),
 				},
 			},
 		})
@@ -242,7 +243,7 @@ func runDeployments(ctx context.Context, cfg struct {
 			Field: &list.Field{
 				Name: "data.spec.version",
 				Type: &list.FieldType{
-					Value: cfg.Version,
+					Value: gl.Ptr(cfg.Version),
 				},
 			},
 		})

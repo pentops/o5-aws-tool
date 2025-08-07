@@ -861,9 +861,7 @@ const (
 // CFStackInput Proto: CFStackInput
 type CFStackInput struct {
 	StackName    string                          `json:"stackName,omitempty"`
-	S3Template   *S3Template                     `json:"s3Template,omitempty"`
-	TemplateBody string                          `json:"templateBody,omitempty"`
-	EmptyStack   bool                            `json:"emptyStack,omitempty"`
+	Template     *TemplateType                   `json:"template,omitempty"`
 	DesiredCount int32                           `json:"desiredCount,omitempty"`
 	Parameters   []*CloudFormationStackParameter `json:"parameters,omitempty"`
 	SnsTopics    []string                        `json:"snsTopics,omitempty"`
@@ -1744,6 +1742,49 @@ type StepOutputType_CFChangesetStatus struct {
 type StepOutputType_CFStackStatus struct {
 	Lifecycle CFLifecycle `json:"lifecycle,omitempty"`
 	Outputs   []*KeyValue `json:"outputs,omitempty"`
+}
+
+// TemplateType Proto Oneof: o5.aws.deployer.v1.TemplateType
+type TemplateType struct {
+	J5TypeKey    string                     `json:"!type,omitempty"`
+	S3Template   *S3Template                `json:"s3Template,omitempty"`
+	TemplateBody *TemplateType_TemplateBody `json:"templateBody,omitempty"`
+	EmptyStack   *TemplateType_EmptyStack   `json:"emptyStack,omitempty"`
+}
+
+func (s TemplateType) OneofKey() string {
+	if s.S3Template != nil {
+		return "s3Template"
+	}
+	if s.TemplateBody != nil {
+		return "templateBody"
+	}
+	if s.EmptyStack != nil {
+		return "emptyStack"
+	}
+	return ""
+}
+
+func (s TemplateType) Type() interface{} {
+	if s.S3Template != nil {
+		return s.S3Template
+	}
+	if s.TemplateBody != nil {
+		return s.TemplateBody
+	}
+	if s.EmptyStack != nil {
+		return s.EmptyStack
+	}
+	return nil
+}
+
+// TemplateType_EmptyStack Proto: TemplateType_EmptyStack
+type TemplateType_EmptyStack struct {
+}
+
+// TemplateType_TemplateBody Proto: TemplateType_TemplateBody
+type TemplateType_TemplateBody struct {
+	Body string `json:"body,omitempty"`
 }
 
 // TriggerSource Proto Oneof: o5.aws.deployer.v1.TriggerSource

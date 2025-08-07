@@ -9,9 +9,10 @@ import (
 
 // Action Proto: Action
 type Action struct {
-	Method      string       `json:"method"`
-	Actor       *Actor       `json:"actor"`
-	Fingerprint *Fingerprint `json:"fingerprint,omitempty"`
+	Method         string       `json:"method"`
+	Actor          *Actor       `json:"actor"`
+	Fingerprint    *Fingerprint `json:"fingerprint,omitempty"`
+	IdempotencyKey string       `json:"idempotencyKey,omitempty"`
 }
 
 // Actor Proto: Actor
