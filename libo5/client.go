@@ -42,7 +42,7 @@ func (c APIConfig) APIClient() *API {
 			panic(fmt.Errorf("failed to load AWS config: %w", err))
 		}
 
-		auth, err := NewIAMAuth(c.IAMEndpoint, "clearing", awsConfig)
+		auth, err := NewIAMAuth(c.IAMEndpoint, "o5", awsConfig)
 		if err != nil {
 			panic(fmt.Errorf("failed to create IAM auth: %w", err))
 		}
